@@ -3,11 +3,16 @@ package g3pd.virdgm.core;
 //import g3pd.virdgm.misc.VirdLogger;
 import g3pd.virdgm.types.VTObject;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**Classe que implementa a VirdExec, sendo responsavel pela execucao das funcoes 
  * que cada processo representa*/
@@ -114,9 +119,14 @@ public class VirdExecImpl implements VirdExec {
         if(iterator == null) iterator = 0;
 
 		Integer [] input = null;
+		Integer output = 0;
 		
 		if (!actionAttr.equals("QGMAnalyzer")){
 			input = inputAttrParser(inputPosAttr);
+		}
+		
+		if (!outputPosAttr.contains("[")){
+			output = Integer.parseInt(outputPosAttr);
 		}
 		
         Integer valueput = 0;

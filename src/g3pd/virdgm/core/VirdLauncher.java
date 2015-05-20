@@ -7,6 +7,7 @@ import org.w3c.dom.NodeList;
 
 import g3pd.virdgm.misc.Semaphore;
 import g3pd.virdgm.misc.VPEConnection;
+import g3pd.virdgm.misc.XmlExport;
 
 import org.jscience.mathematics.number.Complex;
 import java.io.*;
@@ -23,14 +24,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VirdLauncher {
 	Vector<VirdProcElem> procLocked  = new Vector<VirdProcElem>();
 	Vector<VirdProcElem> procReady   = new Vector<VirdProcElem>(); 
+	//Vector<HostId>       freeNodes   = new Vector<HostId>();
 	Vector <String>freeNodes = new Vector<String>();
 	int[][]              adjMatrix; 
 	Integer numproc;
 	private final Object lock = new Object();
+	//    CellInformationBase  cib;
+	//    Executor             executor;
+	//    HostId[]             hosts;
+	//    ObjectId[]           objectIds;
 	VirdMemLoader        virdMemLoader;
 	VirdProcLoader       virdProcLoader;
 	Vector <Node>envNodes; 
 	Vector <Node>procelemNodes;
+	//    Worb                 worb;
+	//    Logger				 logger;
 	public static Integer	executionID; 
 	public static Integer   priority = 0;//Modo Depuracao com ou sem logger
 	ConcurrentHashMap<Integer, String>memoryType;
@@ -39,7 +47,6 @@ public class VirdLauncher {
 //	public VirdBackMemory virdBackMemory;
 	private boolean memOK = false;
 	public java.util.concurrent.Semaphore memStop = new java.util.concurrent.Semaphore(1);
-	
 	/**
 	 * Construtor responsavel por disparar o componente VirdLoader, que obtem as informacoes dos arquivos
 	 * descritores da memoria e processos, e identifica a lista de nodos disponiveis
@@ -56,6 +63,7 @@ public class VirdLauncher {
 	 * 
 	 * */
 	public VirdLauncher (String port, String clients){
+		//System.out.println("Criando lista de clientes");
 		String myHosts = clients;
 		String[] hostNames = myHosts.split(",");
 
@@ -211,8 +219,12 @@ public class VirdLauncher {
 	public static void main(String[] args)
 	throws Exception
 	{
+		//Runtime r = Runtime.getRuntime();
+		//Process p = r.exec("EM.jar");
+
 		if (args.length == 1) { new VirdClient(Integer.valueOf(Integer.parseInt(args[0])));
 		} else if(args.length == 2){
+			//System.out.println("Launcher 2");
 			final VirdLauncher virdLauncher = new VirdLauncher(args[0],args[1]);
 		}else{
 			System.out.println("Launcher 3");
@@ -229,6 +241,7 @@ public class VirdLauncher {
 
 				final VirdLauncher virdLauncher = new VirdLauncher(args[0], args[1], args[2]);
 				
+				//virdLauncher.printMemoryLog();
 				Thread vird = new Thread()
 				{
 					public void run() {
@@ -242,10 +255,13 @@ public class VirdLauncher {
 				};
 				vird.start();
 				vird.join();
-			} catch (InterruptedException localInterruptedException) {
+				
+				//virdLauncher.printMemoryLog();
+				//XmlExport export = new XmlExport();
+				//export.exportXML(virdMemory);
 				
 			}
-			
+			catch (InterruptedException localInterruptedException) {}
 			long tempoFinal = System.currentTimeMillis();
 			PrintWriter results = new PrintWriter(new BufferedWriter(new FileWriter("TotalExecution.txt",true)), true);
 	    	results.write(String.valueOf((tempoFinal - tempoInicial) / 1000.0D)+"\n");
@@ -259,13 +275,14 @@ public class VirdLauncher {
 	    	
 		}
 	}
-	
 	/**
 	 * Coponente Scheduler responsavel pelo mapeamento fisico dos processos 
 	 * inclusos na lista de execução
 	 * @exception IOException
 	 * */
-	public void scheduler()	throws IOException{
+	public void scheduler()
+	throws IOException
+	{
 		final Semaphore procDone = new Semaphore(this.procReady.size() + this.procLocked.size());
 		try {
 			while ((!this.procLocked.isEmpty()) || (!this.procReady.isEmpty()) || (this.numproc > 0))
@@ -329,89 +346,104 @@ public class VirdLauncher {
 				procDone.p();
 			}
 		}
-		catch (Exception localException){
-			
-		}
+		catch (Exception localException)
+		{}
 	}
-	
 	/**
 	 * Remove um processo através do seu ID
 	 * @param proc_id 	ID do processo a ser eliminado
 	 * @param semaphore 
 	 * */
-	public Boolean removeProc(Integer proc_id, Semaphore semaphore){
-		for(int i = 0; i < this.procReady.size(); i++){
-			if (this.procReady.get(i).getProcID() == proc_id){
+	public Boolean removeProc(Integer proc_id, Semaphore semaphore)
+	{
+		for(int i = 0; i < this.procReady.size(); i++)
+		{
+			if (this.procReady.get(i).getProcID() == proc_id)
+			{
+				//VirdProcElem vpe = this.procLocked.remove(i);
 				numproc--;
 				procReady.remove(i);
 				this.releaseProcToExec(proc_id);
 				semaphore.v();
+				//semaphore.release();
 				return true;
 			}
 		}
 
-		for(int i = 0; i < this.procLocked.size(); i++){
-			if (this.procLocked.get(i).getProcID() == proc_id){
+		for(int i = 0; i < this.procLocked.size(); i++)
+		{
+			if (this.procLocked.get(i).getProcID() == proc_id)
+			{
+				//VirdProcElem vpe = this.procLocked.remove(i);
 				numproc--;
 				procLocked.remove(i);
 				this.releaseProcToExec(proc_id);
 				semaphore.v();
+				//semaphore.release();
 				return true;
 			}
 		}
 
 		return false;
 	}
-
 	/**
 	 * Remove uma lista de processos que se encontram em um envelope
 	 * @param procs 	Lista de processos a serem cancelados
 	 * @param semaphore	
 	 * */
-	public void removeProcs(Vector <Object>procs, Semaphore semaphore){
-		for(int i = 0; i < procs.size(); i++){
+	public void removeProcs(Vector <Object>procs, Semaphore semaphore)
+	{
+		for(int i = 0; i < procs.size(); i++)
+		{
 			Boolean f = removeProc((Integer) procs.get(i), semaphore);
+			//			System.out.println("Anderson ----------- processo removido: " + procs.get(i) );
 		}
 	}
-
 	/**
 	 * Metodo responsavel por selecionar o caminho a seguir em uma soma 
 	 * deterministica. 
 	 * @param vpe		processo pai da soma deterministica
 	 * @param semaphore
 	 * */
-	public void verifySomDet(VirdProcElem vpe, Semaphore semaphore){
-		if(vpe.isSomdetNode()){
+	public void verifySomDet(VirdProcElem vpe, Semaphore semaphore)
+	{
+		if(vpe.isSomdetNode()) {
 			Integer pos = Integer.parseInt(vpe.getOutputPosAttr());
 			Boolean result_somdet = (Boolean) virdMemory.readMemory(pos);
 			Boolean res_somdet = result_somdet;
 
-			if(res_somdet){
+			if(res_somdet)
+			{
 				Node n = vpe.getSomdetNodeTrue();
 				Node n_false = vpe.getSomdetNodeFalse();
-				if(VirdProcLoader.getNodeAttribute(n, "repr").equals("conselem")){
+				if(VirdProcLoader.getNodeAttribute(n, "repr").equals("conselem"))
+				{
 					this.releaseProcToExec((Integer)n.getUserData("proc_id"));
 					removeProc((Integer)n_false.getUserData("proc_id"), semaphore);
 				}
-				else if(VirdProcLoader.getNodeAttribute(n, "repr").equals("env")){
+				else if(VirdProcLoader.getNodeAttribute(n, "repr").equals("env"))
+				{
 					Vector<Object> proc_to_remove = findProcelem(n_false);
 					removeProcs(proc_to_remove, semaphore);
 				}
-			}else{
+			}
+			else
+			{
 				Node n = vpe.getSomdetNodeFalse();
 				Node n_true = vpe.getSomdetNodeTrue();
-				if(VirdProcLoader.getNodeAttribute(n, "repr").equals("conselem")){
+				if(VirdProcLoader.getNodeAttribute(n, "repr").equals("conselem"))
+				{
 					removeProc((Integer)n_true.getUserData("proc_id"), semaphore);
 					this.releaseProcToExec((Integer)n.getUserData("proc_id"));
 				}
-				else if(VirdProcLoader.getNodeAttribute(n, "repr").equals("env")){
+				else if(VirdProcLoader.getNodeAttribute(n, "repr").equals("env"))
+				{
 					Vector<Object> proc_to_remove = findProcelem(n_true);
 					removeProcs(proc_to_remove, semaphore);
 				}
 			}
 		}
 	}
-	
 	//Metodo responsavel por excluir as projecoes que nao serao utilizadas 
 	/**
 	 * @param virdProcElem		processo que representa o operador DetProj

@@ -25,12 +25,9 @@ import g3pd.virdgm.core.VirdLauncher;
 import g3pd.virdgm.core.VirdMemory;
 
 public class XmlExport {
-	
-	public XmlExport(){
+	public void XmlExport(){
 		
 	}
-	
-	@SuppressWarnings("unchecked")
 	public void exportXML(VirdMemory memory){
 		String types = new String("Complex");
 		String values = new String("");

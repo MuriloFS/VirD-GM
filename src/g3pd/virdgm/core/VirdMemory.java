@@ -23,30 +23,33 @@ public class VirdMemory implements Serializable{
 	public boolean GPU = false;
 	public boolean writing = false;
 	private ObjectOutputStream oos;
-
-	public VirdMemory(){
-		
-	}
-
-	/**Construtor do objeto VirdMemory
-	 * @param memorytype	Lista com os tipos de cada posicao de memoria
-	 * @param memorydata	Lista com os dados de cada posicao de memoria */
-	public VirdMemory(ConcurrentHashMap<Integer, String> memoryType, ConcurrentHashMap<Integer, Object> memoryData){
-			this.data = memoryData;
-			this.type = memoryType;
-			ConcurrentHashMap<Integer, Object> temp;
-	}
-
+	
 	/**Indica o objeto stream para escrita dos dados na memoria*/
 	public void setOutputStream(ObjectOutputStream oos)
 	{
 		this.oos = oos;
 	}
 	
+	public VirdMemory(){}
+	/**Construtor do objeto VirdMemory
+	 * @param memorytype	Lista com os tipos de cada posicao de memoria
+	 * @param memorydata	Lista com os dados de cada posicao de memoria */
+	@SuppressWarnings("unchecked")
+	public VirdMemory(ConcurrentHashMap<Integer, String> memoryType, ConcurrentHashMap<Integer, Object> memoryData){
+			this.data = memoryData;
+			this.type = memoryType;
+			ConcurrentHashMap<Integer, Object> temp;
+	}
+	
 	public VirdMemory intervalMemory(String input){
 		int begin, q, num_partes;
 		String init_pos;
+		//System.out.println(entrada);
+		
+		//retira o '[' inicial e o ']' final
 		input = input.substring(1 , input.length() - 1);
+		
+		//separa emdim_soma substrings
 		String [] partes = input.split("]");
 		
 		String[][] saida = new String[partes.length][];
@@ -55,10 +58,15 @@ public class VirdMemory implements Serializable{
 		
 		init_pos = "";
 		num_partes = 1;
+		//separa a entrada em vetores de listas de strings
 		for(int i=0; i<partes.length; i++){
 			begin = 2;
 			if (i==0) {begin = 1;}
+			
+			//retira os '[' , ']' das substrings; 
 			partes[i] = partes[i].substring(begin);
+			
+			//separa as substrings em uma lista de strings
 			saida[i] = (partes[i].split(","));
 			
 			num_partes = num_partes * (int)Math.pow(2, saida[i][0].length()) / saida[i].length;
@@ -66,6 +74,9 @@ public class VirdMemory implements Serializable{
 			q += saida[i][0].length();
 			
 		}
+		
+		//System.out.println(q);
+		//System.out.println("Pos: " + init_pos + "\nPartes: " + num_partes);
 		
 		VirdMemory temp = new VirdMemory();
 		
@@ -77,6 +88,8 @@ public class VirdMemory implements Serializable{
 		temp.shift = Integer.parseInt(init_pos, 2);
 		
 		System.arraycopy(men, temp.shift, data, 0, data.length);
+		
+		
 		
 		ConcurrentHashMap<Integer, float[]> t = new ConcurrentHashMap<Integer, float[]>();
 		t.put(0, data);
@@ -203,6 +216,10 @@ public class VirdMemory implements Serializable{
 		for (int i=0; i<newValues.size(); i++)
 			readMem.put((Integer)positions[i], writeMem.get(positions[i]));
 		
+//		ConcurrentHashMap<Integer, Object> temp;
+//		temp = (ConcurrentHashMap<Integer, Object>) this.data.get(0);
+//		this.data.replace(0, this.data.get(1));
+//		this.data.replace(1, temp);
 		eraseMemory(1);
 	}
 	

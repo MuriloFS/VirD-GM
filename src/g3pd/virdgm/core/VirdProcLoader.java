@@ -6,6 +6,11 @@ import org.w3c.dom.*;
 
 //~--- JDK imports ------------------------------------------------------------
 
+//import g3pd.virdgm.misc.VirdLogger;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.*;
@@ -26,6 +31,7 @@ public class VirdProcLoader {
 	 * @param inputFile 	Nome do arquivo descritor de processos
 	 * @exception e 	Erro ocorrido durante o processo*/
 	VirdProcLoader(String inputFile) throws IOException {
+		//VirdLogger.timeLogger("Inicializando interpretador de processos",1);
 		this.inputFile    = inputFile;
 		this.virdProcElem = new Vector<VirdProcElem>();
 		virdGraph         = new VirdGraph();
@@ -33,12 +39,17 @@ public class VirdProcLoader {
 		procelemNodes	  = new Vector<Node>();
 
 		try {
+			//VirdLogger.timeLogger("VirdProcLoader: abrindo arquivo de processos ->  " + inputFile,1);
 			openFile();
+			//VirdLogger.timeLogger("VirdProcLoader: arquivo de processos lido... saindo",1);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
+		//VirdLogger.timeLogger("VirdProcLoader: preparando-se para a criacao da matriz de adjacencias ",1);
 		createAdjMatrix();
+		//VirdLogger.timeLogger("VirdProcLoader: matriz de adjancencias criada ",1);
+
 	}
 	/**Metodo que retorna uma lista de processos elementares*/
 	public Vector<VirdProcElem> getVirdProcElem() {
@@ -73,7 +84,9 @@ public class VirdProcLoader {
 		Node                   node     = nodelist.item(1);
 		Vector <Object>                list     = new Vector<Object>();
 
+		//VirdLogger.timeLogger("VirdProcLoader: inicializando interpretador XML ",1);
 		parseFile(list, node);
+		//VirdLogger.timeLogger("VirdProcLoader: finalizando interpretador XML ",1);
 	}
 	/**Interpretador do arquivo descritor de processos, responsavel por identificar
 	 * o tipo de representacao, a acao, o valor para teste se houver,
@@ -84,6 +97,7 @@ public class VirdProcLoader {
 	 * @param previousProc 	Lista de processos anteriores
 	 * @param node 		Nodo sendo analizado*/
 	public Object parseFile(Object previousProc, Node node) throws IOException {
+		//VirdLogger.timeLogger("VirdProcLoader: interpretador XML iniciado",1);
 		
 		if (getNodeAttribute(node, "repr").equals("conselem")) {
 			return conselem(previousProc,node);
@@ -94,6 +108,7 @@ public class VirdProcLoader {
 		if (getNodeAttribute(node, "repr").equals("probability")) {
 			return probability(previousProc,node);
 		}
+		//Componente projeção utilizado pela qGM
 		if (getNodeAttribute(node, "repr").equals("projection")) {
 			return projection(previousProc,node);
 		}	
@@ -122,6 +137,7 @@ public class VirdProcLoader {
 	}
 	
 	private Object macro(Object previousProc, Node node) throws IOException {
+		// TODO Auto-generated method stub
 		if (getNodeAttribute(node, "tipo").equals("classic")){
 			String  arqAttr  = getNodeAttribute(node, "arq");
 			System.out.println("ARQUIVO: " + arqAttr);
@@ -134,14 +150,18 @@ public class VirdProcLoader {
 				NodeList               nodelist = elem.getChildNodes();
 				Node                   nodo     = nodelist.item(1);
 
+				//VirdLogger.timeLogger("VirdProcLoader: inicializando interpretador XML ",1);
 				procList.add(parseFile(previousProc, nodo));
+				//VirdLogger.timeLogger("VirdProcLoader: finalizando interpretador XML ",1);
 			} catch (Exception e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return procList;
 		}	
 		
 		if (getNodeAttribute(node, "tipo").equals("quantum")){
+			//VirdLogger.timeLogger("VirdProcLoader: Macro quantica encontrada:",1);
 			Vector   <Node>readNodes = new Vector<Node>();
 			NodeList filhos    = node.getChildNodes();
 
@@ -163,7 +183,10 @@ public class VirdProcLoader {
 		return -1;
 	}
 	private Object iterativo(Object previousProc, Node node) throws IOException {
+		// TODO Auto-generated method stub
+		//VirdLogger.timeLogger("VirdProcLoader: iterativo encontrado... preparando-se para processar",1);
 		if (getNodeAttribute(node, "tipo").equals("iterativo")) {
+			//VirdLogger.timeLogger("VirdProcLoader: processo iterativo encontrado",1);
 			Vector   <Node>readNodes  = new Vector<Node>();
 			NodeList childNodes = node.getChildNodes();
 
@@ -172,7 +195,9 @@ public class VirdProcLoader {
 					readNodes.add(childNodes.item(i));
 				}
 			}
+			//VirdLogger.timeLogger("VirdProcLoader: " + readNodes.size() + " processos para serem iterados",1);
 			String range = getNodeAttribute( node, "range");
+			//VirdLogger.timeLogger("VirdProcLoader: range de iteracao " + range,1);
 			String [] range_attrs = range.split(":");
 
 			int start_iterator = Integer.parseInt(range_attrs[0]);
@@ -182,6 +207,7 @@ public class VirdProcLoader {
 			if (getNodeAttribute(node, "acao").equals("parfor")) {
 				Vector <Object>procList = new Vector<Object>();
 				for (int i = start_iterator; i < end_iterator; i+=jump_iterator) {
+					//VirdLogger.timeLogger("VirdProcLoader: [parfor] replicando processo " + i,1);
 					((Node) readNodes.get(0)).setUserData("iterator", i, null);
 					procList.add(parseFile(previousProc, (Node) readNodes.get(0)));					
 				}
@@ -189,6 +215,7 @@ public class VirdProcLoader {
 			}
 			else if (getNodeAttribute(node, "acao").equals("seqfor")) {
 				for (int i = start_iterator; i < end_iterator; i+=jump_iterator) {
+					//VirdLogger.timeLogger("VirdProcLoader: [seqfor] replicando processo " + i,1);
 					((Node) readNodes.get(0)).setUserData("iterator", i, null);
 					previousProc = parseFile(previousProc, (Node) readNodes.get(0));
 				}
@@ -199,32 +226,40 @@ public class VirdProcLoader {
 		return -1;
 	}
 	private Object detProj(Object previousProc, Node node) throws IOException {
+		// TODO Auto-generated method stub
+		//VirdLogger.timeLogger("VirdProcLoader: operador detproj encontrado... preparando-se para processar",1);
+		
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
 		
 		VirdProcElem virdProcElem  = new VirdProcElem("", "", "", inputPosAttr, procID, 0);
 		virdProcElem.setProjNode(true);
 
+		//VirdLogger.timeLogger("VirdProcLoader: operador detproj criado: " + virdProcElem,1);
+
 		this.virdProcElem.add(virdProcElem);
+
+		//VirdLogger.timeLogger("VirdProcLoader: ",1);
 
 		if (previousProc instanceof Integer) {
 			Vector <Object>previous = new Vector<Object>();
 
 			previous.add(previousProc);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previous,2);
 			this.virdNode = new VirdNode(procID, previous, node);
 
 
 		} else if (previousProc instanceof Vector) {
 
 			Vector <Object>previous = new Vector<Object>();
-			Vector <Object>aux      = new Vector<Object>();
+			Vector <Object>aux      = new Vector<Object>();    // Check
 
 			for (int i = 0; i < ((Vector) previousProc).size(); i++) {
-				if(((Vector) previousProc).get(i) instanceof Integer) {
-					Vector <Object>aux2 = new Vector<Object>();
+				if(((Vector) previousProc).get(i) instanceof Integer) { // Check
+					Vector <Object>aux2 = new Vector<Object>(); // Check
 
-					aux2.add(((Vector) previousProc).get(i));
-					((Vector) previousProc).set(i, aux2);
-					}
+					aux2.add(((Vector) previousProc).get(i)); // Check
+					((Vector) previousProc).set(i, aux2); // Check
+				}
 
 				aux = (Vector) ((Vector) previousProc).get(i);
 
@@ -232,12 +267,16 @@ public class VirdProcLoader {
 					previous.add(aux.get(j));
 				}
 			}
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previousProc,2);
 			this.virdNode = new VirdNode(procID, previous, node);
 		} else {
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previousProc,2);
 			this.virdNode = new VirdNode(procID, previousProc, node);
 		}
 
+		//VirdLogger.timeLogger("VirdProcLoader: grafo " + virdGraph,1);
 		this.virdGraph.addNode(virdNode);
+		////VirdLogger.timeLogger("VirdProcLoader: grafo " + virdGraph,1);
 		
 		procID++;
 		
@@ -249,6 +288,7 @@ public class VirdProcLoader {
 			Node node_l = (Node)node.getUserData(idt);
 			parseFile(id, node_l);
 			virdProcElem.setNodeList(node_l);
+//			System.out.println("Node List      :"+virdProcElem.getNodeList());
 			i++;
 			idt = ""+i;
 		}
@@ -256,6 +296,8 @@ public class VirdProcLoader {
 		return procID - 1;
 	}
 	private Object sumDet(Object previousProc, Node node) throws IOException {
+		// TODO Auto-generated method stub
+		//VirdLogger.timeLogger("VirdProcLoader: processo soma deterministica encontrado... preparando-se para processar",1);
 		String       actionAttr    = getNodeAttribute(node, "acao");
 		String valueAttr = getNodeAttribute(node, "valor");
 		String       outputPosAttr = getNodeAttribute(node, "pos");
@@ -265,26 +307,31 @@ public class VirdProcLoader {
 		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, procID, iterator);
 		virdProcElem.setSomdetNode(true);
 
+		//VirdLogger.timeLogger("VirdProcLoader: processo elementar criado: " + virdProcElem,1);
+
 		this.virdProcElem.add(virdProcElem);
+
+		//VirdLogger.timeLogger("VirdProcLoader: ",1);
 
 		if (previousProc instanceof Integer) {
 			Vector previous = new Vector();
 
 			previous.add(previousProc);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previous,2);
 			this.virdNode = new VirdNode(procID, previous, node);
 
 
 		} else if (previousProc instanceof Vector) {
 
 			Vector previous = new Vector();
-			Vector aux      = new Vector();
+			Vector aux      = new Vector();    // Check
 
 			for (int i = 0; i < ((Vector) previousProc).size(); i++) {
-				if(((Vector) previousProc).get(i) instanceof Integer) {
-					Vector aux2 = new Vector();
+				if(((Vector) previousProc).get(i) instanceof Integer) { // Check
+					Vector aux2 = new Vector(); // Check
 
-					aux2.add(((Vector) previousProc).get(i));
-					((Vector) previousProc).set(i, aux2);
+					aux2.add(((Vector) previousProc).get(i)); // Check
+					((Vector) previousProc).set(i, aux2); // Check
 				}
 
 				aux = (Vector) ((Vector) previousProc).get(i);
@@ -293,12 +340,16 @@ public class VirdProcLoader {
 					previous.add(aux.get(j));
 				}
 			}
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previousProc,2);
 			this.virdNode = new VirdNode(procID, previous, node);
 		} else {
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previousProc,2);
 			this.virdNode = new VirdNode(procID, previousProc, node);
 		}
 
+		//VirdLogger.timeLogger("VirdProcLoader: grafo " + virdGraph,1);
 		this.virdGraph.addNode(virdNode);
+		////VirdLogger.timeLogger("VirdProcLoader: grafo " + virdGraph,1);
 		procID++;
 
 		Node node_true = (Node) node.getUserData("true_part");
@@ -311,12 +362,16 @@ public class VirdProcLoader {
 		procList.add(parseFile(procID - 2, node_false));
 
 		virdProcElem.setSomdetNodeTrue(node_true);
+		////VirdLogger.timeLogger("NODO-TRUE: " + node_true);
 		virdProcElem.setSomdetNodeFalse(node_false);
+		////VirdLogger.timeLogger("NODO-FALSO: " + node_false);
 		return procID - 1;
 	}
 	private Object envelope(Object previousProc, Node node) throws IOException {
 		this.envNodes.add(node);
+		//VirdLogger.timeLogger("VirdProcLoader: envelope encontrado... preparando-se para processar",1);
 		if (getNodeAttribute(node, "tipo").equals("seq")) {
+			//VirdLogger.timeLogger("VirdProcLoader: envelope sequencial encontrado",1);
 			Vector   <Node>readNodes  = new Vector<Node>();
 			NodeList childNodes = node.getChildNodes();
 
@@ -330,6 +385,7 @@ public class VirdProcLoader {
 				if ((getNodeAttribute((Node) readNodes.get(i), "repr").equals("terminicio") != true)
 						&& (getNodeAttribute((Node) readNodes.get(i), "repr").equals("termfim") != true)) {
 					previousProc = parseFile(previousProc, (Node) readNodes.get(i));
+//					System.out.println("Previous Proc:  "+previousProc);
 				}
 			}
 
@@ -337,6 +393,7 @@ public class VirdProcLoader {
 		}
 
 		if (getNodeAttribute(node, "tipo").equals("paralelo")) {
+			//VirdLogger.timeLogger("VirdProcLoader: envelope paralelo encontrado",1);
 			Vector   <Node>readNodes = new Vector<Node>();
 			NodeList filhos    = node.getChildNodes();
 
@@ -364,6 +421,7 @@ public class VirdProcLoader {
 		}
 
 		if (getNodeAttribute(node, "tipo").equals("nondet")) {
+			//VirdLogger.timeLogger("VirdProcLoader: envelope nao-deterministico encontrado",1);
 			Vector   <Node>readNodes = new Vector<Node>();
 			NodeList filhos    = node.getChildNodes();
 
@@ -381,8 +439,11 @@ public class VirdProcLoader {
 		}
 		//
 		if (getNodeAttribute(node, "tipo").equals("somdet")) {
+			//VirdLogger.timeLogger("VirdProcLoader: envelope soma-deterministica (aka teste deterministico ) encontrado",1);
 			Vector <Node>readNodes = new Vector<Node>();
 			NodeList filhos    = node.getChildNodes();
+
+			//VirdLogger.timeLogger("VirdProcLoader: tamanho envelope = "  + filhos.getLength(),1);
 
 			for (int i = 0; i < filhos.getLength(); i++){
 				if (Node.ELEMENT_NODE == filhos.item(i).getNodeType()){
@@ -405,39 +466,63 @@ public class VirdProcLoader {
 		//ANDERSON 26/02/10
 		//nondet QUANTICO
 		if (getNodeAttribute(node, "tipo").equals("nondet1")) {
+			//VirdLogger.timeLogger("VirdProcLoader: envelope soma-nao-deterministica encontrado",1);
 			Vector <Node>readNodes = new Vector<Node>();
 			NodeList filhos    = node.getChildNodes();
 
+			//VirdLogger.timeLogger("VirdProcLoader: tamanho envelope = "  + filhos.getLength(),1);
+			//seleciona todos os elementos internos
 			for (int i = 0; i < filhos.getLength(); i++){
 				if (Node.ELEMENT_NODE == filhos.item(i).getNodeType()){
+//					System.out.println("FILHO    :"+filhos.item(i).toString());
 					readNodes.add(filhos.item(i));
 				}
 			}
 			Vector <Object>procList = new Vector<Object>();
+			//indica para o operador detproj os processos que representam as projecoes 
+			//o userData do nodo indica a projecao
+//			System.out.println("READ NODES:     "+readNodes);
 			for (int i=1; i<readNodes.size();i++){
 					String s = String.valueOf(i);
 					((Node)readNodes.get(0)).setUserData(s, readNodes.get(i), null);
+//					System.out.println("NODO SET USERDATA    :"+readNodes.get(i).getUserData(s));
 			}
+			//retorna o operador detproj que será executado no VirdLauncher em tempo de execucao
 			procList.add(parseFile(previousProc, (Node) readNodes.get(0)));
+//			System.out.println("ProcList:  "+procList);
 			return procList; 
 		}
 		return -1;
 	}
 	private Object projection(Object previousProc, Node node) {
+		// TODO Auto-generated method stub
 		this.procelemNodes.add(node);
+
+		//VirdLogger.timeLogger("VirdProcLoader: projeção encontrada... preparando-se para processar",1);
+
 		String       actionAttr    = getNodeAttribute(node, "acao");			
 		String       outputPosAttr = getNodeAttribute(node, "pos");
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
 		Integer iterator = (Integer) node.getUserData("iterator");
 		
 		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, "", outputPosAttr, inputPosAttr, procID, iterator);
+
+		//VirdLogger.timeLogger("VirdProcLoader: projeção criada: " + virdProcElem,1);
+
 		this.virdProcElem.add(virdProcElem);
+
+		//VirdLogger.timeLogger("VirdProcLoader:  ",1);
+
 		if (previousProc instanceof Integer) {
 			Vector<Object> previous = new Vector<Object>();
 
 			previous.add(previousProc);
 			this.virdNode = new VirdNode(procID, previous, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE?? " + previous,2);
+
+
 		} else if (previousProc instanceof Vector) {
+
 			Vector <Object>previous = new Vector <Object>();
 			Vector <Object>aux      = new Vector <Object>();    // Check
 
@@ -457,10 +542,14 @@ public class VirdProcLoader {
 			}
 
 			this.virdNode = new VirdNode(procID, previous, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previous,2);
 		} else {
+
 			this.virdNode = new VirdNode(procID, previousProc, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????????????? " + previousProc,2);
 		}
 
+		//VirdLogger.timeLogger("VirdProcLoader: grafo " + virdGraph,1);
 		this.virdGraph.addNode(virdNode);
 		node.setUserData("proc_id", procID, null);
 		procID++;
@@ -468,40 +557,61 @@ public class VirdProcLoader {
 		return procID - 1;
 	}
 	private Object probability(Object previousProc, Node node) {
+		// TODO Auto-generated method stub
 		this.procelemNodes.add(node);
 
+		//VirdLogger.timeLogger("VirdProcLoader: probabilidade encontrado... preparando-se para processar",1);
+
 		String       actionAttr    = getNodeAttribute(node, "acao");
+		//String 		 valueAttr = getNodeAttribute(node, "value");
 		String       outputPosAttr = getNodeAttribute(node, "pos");
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
+		//Integer iterator = (Integer) node.getUserData("iterator");
 		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, "", outputPosAttr, inputPosAttr, procID, 0);
+
+		//VirdLogger.timeLogger("VirdProcLoader: probabilidade criado: " + virdProcElem,1);
 
 		this.virdProcElem.add(virdProcElem);
 
+		//VirdLogger.timeLogger("VirdProcLoader:  ",1);
+
 		if (previousProc instanceof Integer) {
 			Vector<Object> previous = new Vector<Object>();
+
 			previous.add(previousProc);
 			this.virdNode = new VirdNode(procID, previous, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE?? " + previous,2);
+
+
 		} else if (previousProc instanceof Vector) {
+
 			Vector <Object>previous = new Vector <Object>();
 			Vector <Object>aux      = new Vector <Object>();    // Check
 
 			for (int i = 0; i < ((Vector) previousProc).size(); i++) {
 				if(((Vector) previousProc).get(i) instanceof Integer) { // Check
 					Vector  <Object>aux2 = new Vector(); // Check
+
 					aux2.add(((Vector) previousProc).get(i)); // Check
 					((Vector) previousProc).set(i, aux2); // Check
 				}
+
 				aux = (Vector) ((Vector) previousProc).get(i);
+
 				for (int j = 0; j < aux.size(); j++) {
 					previous.add(aux.get(j));
 				}
 			}
+
 			this.virdNode = new VirdNode(procID, previous, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previous,2);
 		} else {
 
 			this.virdNode = new VirdNode(procID, previousProc, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????????????? " + previousProc,2);
 		}
 
+		//VirdLogger.timeLogger("VirdProcLoader: grafo " + virdGraph,1);
 		this.virdGraph.addNode(virdNode);
 		node.setUserData("proc_id", procID, null);
 		procID++;
@@ -511,21 +621,34 @@ public class VirdProcLoader {
 	
 	private Object conselem(Object previousProc, Node node){
 		this.procelemNodes.add(node);
+		//VirdLogger.timeLogger("VirdProcLoader: processo elementar encontrado... preparando-se para processar",1);
 
 		String       actionAttr    = getNodeAttribute(node, "acao");
 		String 		 valueAttr = getNodeAttribute(node, "value");
 		String       outputPosAttr = getNodeAttribute(node, "pos");
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
 		Integer iterator = (Integer) node.getUserData("iterator");
+
 		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, procID, iterator);
+
+		//VirdLogger.timeLogger("VirdProcLoader: processo elementar criado: " + virdProcElem,1);
+
 		this.virdProcElem.add(virdProcElem);
+
+		//VirdLogger.timeLogger("VirdProcLoader:  ",1);
+		
 
 		if (previousProc instanceof Integer) {
 			Vector<Object> previous = new Vector<Object>();
 
 			previous.add(previousProc);
 			this.virdNode = new VirdNode(procID, previous, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE?? " + previous,2);
+
+
 		} else if (previousProc instanceof Vector) {
+
+//			System.out.println("Previous Proc:  "+previousProc);
 			Vector <Object>previous = new Vector <Object>();
 			Vector <Object>aux      = new Vector <Object>();    // Check
 
@@ -545,10 +668,14 @@ public class VirdProcLoader {
 			}
 
 			this.virdNode = new VirdNode(procID, previous, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previous,2);
 		} else {
+
 			this.virdNode = new VirdNode(procID, previousProc, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????????????? " + previousProc,2);
 		}
 
+		//VirdLogger.timeLogger("VirdProcLoader: grafo " + virdGraph,1);
 		this.virdGraph.addNode(virdNode);
 		node.setUserData("proc_id", procID, null);
 		procID++;
@@ -558,6 +685,8 @@ public class VirdProcLoader {
 	
 	private Object quantumprocess(Object previousProc, Node node){
 		this.procelemNodes.add(node);
+		//VirdLogger.timeLogger("VirdProcLoader: processo elementar encontrado... preparando-se para processar",1);
+
 		String       actionAttr    = getNodeAttribute(node, "acao");
 		String 		 valueAttr = getNodeAttribute(node, "funcao");
 		String       inputPosAttr  = getNodeAttribute(node, "pos");
@@ -565,13 +694,25 @@ public class VirdProcLoader {
 		
 
 		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, procID, -1);
+
+		//VirdLogger.timeLogger("VirdProcLoader: processo elementar criado: " + virdProcElem,1);
+
 		this.virdProcElem.add(virdProcElem);
+
+		//VirdLogger.timeLogger("VirdProcLoader:  ",1);
+		
 
 		if (previousProc instanceof Integer) {
 			Vector<Object> previous = new Vector<Object>();
+
 			previous.add(previousProc);
 			this.virdNode = new VirdNode(procID, previous, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE?? " + previous,2);
+
+
 		} else if (previousProc instanceof Vector) {
+
+//			System.out.println("Previous Proc:  "+previousProc);
 			Vector <Object>previous = new Vector <Object>();
 			Vector <Object>aux      = new Vector <Object>();    // Check
 
@@ -591,9 +732,14 @@ public class VirdProcLoader {
 			}
 
 			this.virdNode = new VirdNode(procID, previous, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????? " + previous,2);
 		} else {
+
 			this.virdNode = new VirdNode(procID, previousProc, node);
+			//VirdLogger.timeLogger("VirdProcLoader: TRUE????????????? " + previousProc,2);
 		}
+
+		//VirdLogger.timeLogger("VirdProcLoader: grafo " + virdGraph,1);
 		this.virdGraph.addNode(virdNode);
 		node.setUserData("proc_id", procID, null);
 		procID++;
@@ -628,6 +774,7 @@ public class VirdProcLoader {
 		int     idNode;
 		Integer val;
 		Vector <Integer> adj;
+		//VirdLogger.timeLogger("VirdGraph: 1 :" + this.virdGraph,1);
 		adjMatrix = new int[this.virdGraph.size()][this.virdGraph.size()];
 
 		for (int i = 0; i < this.virdGraph.size(); i++) {
@@ -651,6 +798,9 @@ public class VirdProcLoader {
 			}
 
 		}
+
+		//VirdLogger.timeLogger("VirdProcLoader: grafo final -> " + virdGraph,1);
+
 		return adjMatrix;
 	}
 
@@ -674,8 +824,10 @@ public class VirdProcLoader {
         
         for (int i = 0; i < attrs.length; i++) {
         	String [] n = attrs[i].split(",");
+//        	aux.add(n);
         	Vector <String> aux1 = new Vector <String>();
         	for (int j =0; j<n.length;j++){
+//        		System.out.println(n[j]);
         		aux1.add(n[j]);
         	}
         	process.add(aux1);

@@ -21,7 +21,7 @@ public class VirdProcElem {
     Node	node_true;
     Node	node_false;
     Vector <Node> nodeList;
-
+    //adicionar o value
     /**
      * Construtor que recebe os parametros que caracterizam o processo
      * 

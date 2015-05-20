@@ -1,21 +1,27 @@
 package g3pd.virdgm.core;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jscience.mathematics.number.Complex;
 
+//import g3pd.virdgm.misc.VirdLogger;
+import g3pd.virdgm.types.VTObject;
+
+
 /**Classe que representa a memoria utilizada durante a execucao de 
  * determinada avaliacao*/
 public class VirdBackMemory {
-	private ConcurrentHashMap<Integer, Complex> dataBackup = new ConcurrentHashMap<Integer, Complex>();
-	private ConcurrentHashMap<Integer, String> typeBackup = new ConcurrentHashMap<Integer, String>();
+	public ConcurrentHashMap<Integer, Complex> dataBackup = new ConcurrentHashMap<Integer, Complex>();
+	public ConcurrentHashMap<Integer, String> typeBackup = new ConcurrentHashMap<Integer, String>();
+//	public List dataBackup = Collections.synchronizedList(new LinkedList());
+//	public List typeBackup = Collections.synchronizedList(new LinkedList());
 	
-	public VirdBackMemory(){
-		
-	}
-	
+	public VirdBackMemory(){}
+	//public List dataBackup = Collections.synchronizedList(new LinkedList());
 	/**Construtor do objeto VirdMemory
 	 * @param memorytype	Lista com os tipos de cada posicao de memoria
 	 * @param memorydata	Lista com os dados de cada posicao de memoria */
@@ -47,7 +53,10 @@ public class VirdBackMemory {
 	{
 		return this.dataBackup.get(position);
 	}
-	
+//	public Object readBackupMemory(Integer position)
+//	{
+//		return dataBackup.get(position);
+//	}
 	/**Metodo que retorna o tipo de determinada posicao de memoria
 	 * @param position	Posicao a qual se verificar o tipo*/
 	public String getType(Integer position)
@@ -58,4 +67,13 @@ public class VirdBackMemory {
 	public int getMemorySize(){
 		return this.dataBackup.size();
 	}
+
+//	public void updateFull(){
+//		for (int i=0; i<this.data.size(); i++){
+//			synchronized (this.data) {
+//				this.dataBackup.set(i, data.get(i));
+//			}
+//		}
+//	}
+
 }

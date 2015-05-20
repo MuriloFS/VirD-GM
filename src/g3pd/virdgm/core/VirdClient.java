@@ -4,12 +4,11 @@ import g3pd.virdgm.types.VTObject;
 
 import java.io.*;
 import java.net.*;
-
+import java.util.*;
 /**Classe responsavel pela conexao entre a base e os nodos clientes*/
 public class VirdClient extends Thread {
 
    private ServerSocket dateServer;
-
 
    public static void main(String argv[]) throws Exception {
      new VirdClient(Integer.parseInt(argv[0]));
@@ -20,6 +19,7 @@ public class VirdClient extends Thread {
    public VirdClient(Integer port) throws Exception {
 	   dateServer = new ServerSocket(3000 + port);
 	   System.out.println("Inicializando VirD-Client");
+	   System.out.println("Porta:" + dateServer.getLocalPort());
 	   this.start();
    }
    
@@ -29,52 +29,63 @@ public class VirdClient extends Thread {
 			   System.out.println("Aguardando Processos: ");
 			   Socket client = dateServer.accept();
 			   System.out.println("Recebido processo de: " + client.getInetAddress());
-		   } catch(Exception e){
+			   Connect c = new Connect(client);
+		   }
+		   catch(Exception e){
 			   
 		   }
 	   }
-   	}
+   }
 }
 
 class Connect extends Thread {
-   private Socket client = null;
-   private ObjectInputStream ois = null;
-   private ObjectOutputStream oos = null;
+	private Socket client = null;
+	private ObjectInputStream ois = null;
+	private ObjectOutputStream oos = null;
 
-   public Connect() {}
+	public Connect() {}
 
-   public Connect(Socket clientSocket){
-     client = clientSocket;
-     try {
-      ois = new ObjectInputStream(client.getInputStream());
-      oos = new ObjectOutputStream(client.getOutputStream());
-     } catch(Exception e1) {
-         try {
-        	System.out.println("Erro: no connect");
-            client.close();
-         }catch(Exception e) {
-           System.out.println("Erro:" + e.getMessage());
-         }
-         return;
-     }
-     this.start();
-   }
+	public Connect(Socket clientSocket){
+		client = clientSocket;
+		try {
+			ois = new ObjectInputStream(client.getInputStream());
+			oos = new ObjectOutputStream(client.getOutputStream());
+		}
+		catch(Exception e1) {
+			try {
+				System.out.println("Erro: no connect");
+				client.close();
+			}
+			catch(Exception e) {
+				System.out.println("Erro:" + e.getMessage());
+			}
+			return;
+		}
+		this.start();
+	}
 
 
-   public void run() {
-      try {
-    	  VTObject myo = (VTObject) ois.readObject();
+   public void run(){
+	   try {
+		   VTObject myo = (VTObject) ois.readObject();
+		   VTObject myi;
     	  
-    	  VirdExecImpl ve = new VirdExecImpl();
+		   VirdExecImpl ve = new VirdExecImpl();
+		   //System.out.println(" acao: " + myo.getObject(0) + " in: " + myo.getObject(1) + " value: " + myo.getObject(2) + " out: " + myo.getObject(3)+" itera: " + myo.getObject(4));
+		   //adicionar (String)myo.getObject()
     	  
-    	  ve.exec((String) myo.getObject(0), (String) myo.getObject(1), (String) myo.getObject(2), (String) myo.getObject(3), (Integer) myo.getObject(4), (VirdMemory) myo.getObject(5), oos);
-    	  myo = null;
+		   ve.exec((String) myo.getObject(0), (String) myo.getObject(1), (String) myo.getObject(2), (String) myo.getObject(3), (Integer) myo.getObject(4), (VirdMemory) myo.getObject(5), oos);
+		   myo = null;
     	 
-    	  ois.close();
-    	  oos.close();
-    	  client.close();
-      }catch(Exception e) {
-    	  System.out.println(e.getMessage());
+		   //oos.flush();
+		   // close streams and connections
+		   ois.close();
+		   oos.close();
+		   client.close();
+		   //System.gc();
+	   }
+	   catch(Exception e){
+		   System.out.println(e.getMessage());
       }
    }
 }

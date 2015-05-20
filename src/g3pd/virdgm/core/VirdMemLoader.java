@@ -1,5 +1,6 @@
 package g3pd.virdgm.core;
 
+//import g3pd.virdgm.misc.VirdLogger;
 import g3pd.virdgm.types.VTArray;
 import g3pd.virdgm.types.VTBoolean;
 import g3pd.virdgm.types.VTDouble;
@@ -11,10 +12,18 @@ import g3pd.virdgm.types.VTPoint;
 import g3pd.virdgm.types.VTString;
 import org.jscience.mathematics.number.Complex;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.w3c.dom.*;
 
@@ -23,27 +32,39 @@ import javax.xml.parsers.*;
 /**Classe responsavel pela interpretacao do arquivo descritor da memoria e mapeamento
  * dos estados de memoria na VirD-GM*/
 public class VirdMemLoader {
+    //Vector <Object> dataAttr;
 	ConcurrentHashMap<Integer, Object>dataAttr = new ConcurrentHashMap<Integer, Object>();
 	ConcurrentHashMap<Integer, String>typeAttr = new ConcurrentHashMap<Integer, String>();
 	boolean GPU;
     int    dimensionsAttr;
     String inputFile;
     int    sizeAttr;
-
+   // Vector<String>typeAttr;
+    
+//    public static void main(String [] args) {
+//    	VirdMemLoader vml = new VirdMemLoader("/home/felipe/svn/VirD-GM/xml/mem30.xml");
+////    	System.out.println(vml.getDateAttr().size());    	
+//    }
     /**Metodo que recebe o arquivo descritor da memoria e verifica sua integridade
      * @param inputFile		Nome do arquivo descritor da memoria*/
     public VirdMemLoader(String inputFile) {
+    	//VirdLogger.timeLogger("Inicializando interpretador de memoria",1);
     	
         this.inputFile = inputFile;
 
         try {
+        	//VirdLogger.timeLogger("VirdMemLoader: abrindo arquivo de memoria ->  " + inputFile,1);
             OpenFile();
-        }catch (Exception e){
+            //validateArgs();
+            
+          //  VirdLogger.timeLogger("VirdMemLoader: arquivo de memoria lido... saindo ->  " + inputFile,1);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
     
     public VirdMemLoader(double num) {
+    	//VirdLogger.timeLogger("Inicializando interpretador de memoria",1);
     	System.out.println("Aqui");
     	num = Math.pow(2, num);
     	ConcurrentHashMap<Integer, Complex>temp = new ConcurrentHashMap<Integer, Complex>();
@@ -56,17 +77,31 @@ public class VirdMemLoader {
     }
     
     public VirdMemLoader(String inputFile, String library, boolean gpu) {
+    	//VirdLogger.timeLogger("Inicializando interpretador de memoria",1);
     	
         this.inputFile = inputFile;
         GPU = gpu;
 
         try {
-            OpenFile("QGMAnalyzer");
+        	//VirdLogger.timeLogger("VirdMemLoader: abrindo arquivo de memoria ->  " + inputFile,1);
+            OpenFile(library);
+            //validateArgs();
+            
+          //  VirdLogger.timeLogger("VirdMemLoader: arquivo de memoria lido... saindo ->  " + inputFile,1);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+//    private boolean validateArgs() {
+//    	boolean validate = true;
+//    	if (dataAttr.size() != typeAttr.size())
+//    		validate = false;
+//    		    		
+//    	
+//    	
+//    	return validate;
+//    }
     /**Metodo responsavel por abrir o arquivo descritor da memoria e inicializar o
      * parser interpretador
      * */
@@ -77,7 +112,9 @@ public class VirdMemLoader {
         Element                elem     = doc.getDocumentElement();
         NodeList               nodelist = elem.getChildNodes();
 
+      //  VirdLogger.timeLogger("VirdMemLoader: inicializando interpretador XML ",1);
         parseFile(nodelist);
+      //  VirdLogger.timeLogger("VirdMemLoader: finalizando interpretador XML ",1);
     }
     
     public void OpenFile(String library) throws Exception {
@@ -87,7 +124,9 @@ public class VirdMemLoader {
         Element                elem     = doc.getDocumentElement();
         NodeList               nodelist = elem.getChildNodes();
 
+      //  VirdLogger.timeLogger("VirdMemLoader: inicializando interpretador XML ",1);
         parseFileAnalyzer(nodelist);
+      //  VirdLogger.timeLogger("VirdMemLoader: finalizando interpretador XML ",1);
     }
     
     /**Metodo que retorna a dimensao da memoria*/
@@ -121,26 +160,29 @@ public class VirdMemLoader {
     public ConcurrentHashMap<Integer, Object> getDateAttr() {
         return dataAttr;
     }
-    
     /**Metodo que altera o vetor de dados contidos na memoria
      * @param dateAttr		Novo vetor contendo os dados para a memoria*/
     public void setDateAttr(ConcurrentHashMap<Integer, Object> dateAttr) {
         this.dataAttr = dateAttr;
         
     }
-
     /**Metodo responsavel pela interpretacao dos tipos contidos na memoria, 
      * representados na tag < valores > do arquivo descritor da memoria
      * @param typeAttr	String contendo os tipos de cada posicao de memoria*/
     private ConcurrentHashMap<Integer, String> parseTypeAttr(String typeAttr) throws Exception {
     	ConcurrentHashMap<Integer, String>typeValues = new ConcurrentHashMap<Integer, String>();
     	String[] typeList   = typeAttr.split(",");
+    	/*for (int i = 0; typeList[i].trim().equals("-") == false ; i++)
+    	System.out.println("+++++++++++++TYPE LIST: "+typeList[i]);
+        for (int i = 0; typeList[i].trim().equals("-") == false ; i++)
+        	typeValues.add(typeList[i].trim());*/
+
+		//ADRIANO
         for (int i = 0; i < typeList.length; i++)
         	typeValues.put(i, typeList[i].trim());
     	
         return typeValues;
     }
-
     /**Metodo responsavel pela interpretacao dos dados contidos na memoria,
      * representados na tag <dados> do arquivo descritor da memoria
      * @param dateAttr	String contendo os dados de cada posicao de memoria*/
@@ -165,6 +207,7 @@ public class VirdMemLoader {
     			lastIndex = dateAttr.lastIndexOf(',', fromIndex - 1);
     			str = dateAttr.substring(lastIndex+1, fromIndex);
     			
+    			//System.out.println(str);
     			
     			fromIndex = lastIndex;
     			
@@ -177,10 +220,27 @@ public class VirdMemLoader {
             		data2[i*2 +1] = 0;
             	}
             	else {
-            		
+            		//VirdLogger.timeLogger("VirdMemLoader: FALHA ao acrescentar valor na memoria",1);
             	}
     			i--;
     		}
+    		/*
+    		for (int i = 0; i < this.getSizeAttr(); i++) {
+    			
+    			
+            	Object memoryValue = applyValue(dataList[i].trim(), 0);
+            	
+            	if (memoryValue != null) {
+            		c = (Complex) memoryValue;
+            		data[i*2] = (float)c.getReal();
+            		data2[i*2] = 0;
+            		data[i*2 +1] = (float)c.getImaginary();
+            		data2[i*2 +1] = 0;
+            	}
+            	else {
+            		//VirdLogger.timeLogger("VirdMemLoader: FALHA ao acrescentar valor na memoria",1);
+            	}       	
+            }*/
     		dataValues.put(0, data);
     		dataValues.put(1, data2);
     	}
@@ -193,6 +253,7 @@ public class VirdMemLoader {
         			dataValues.put(i, memoryValue);
 	        	}
 	        	else {
+	        		//VirdLogger.timeLogger("VirdMemLoader: FALHA ao acrescentar valor na memoria",1);
 	        	}
 	        	i++;
 	        }
@@ -207,6 +268,18 @@ public class VirdMemLoader {
     private ConcurrentHashMap<Integer, Object> parseDateAttrAnalyzer(String dateAttr, int index, int procs) throws Exception {
     	ConcurrentHashMap<Integer, Object> dataValues = new ConcurrentHashMap<Integer, Object>();
     	String[] dataList   = dateAttr.split(",");
+		/*for (int i = 0; dataList[i].trim().equals("-") == false ; i++)
+    	System.out.println("+++++++++++++DATA LIST: "+dataList[i]);
+        for (int i = 0; dataList[i].trim().equals("-") == false ; i++) {
+        	Object memoryValue = applyValue(dataList[i].trim(), i);        	
+        	if (memoryValue != null) {
+        	dataValues.add(memoryValue);
+        	}        	
+        	else {
+        		VirdLogger.timeLogger("VirdMemLoader: FALHA ao acrescentar valor na memoria",1);
+        	}       	
+        }*/
+		//ADRIANO
     	int range = dataList.length/procs;
     	int resto = dataList.length%procs;
     	int add = 0;
@@ -224,6 +297,7 @@ public class VirdMemLoader {
         	}
         	
         	else {
+        		//VirdLogger.timeLogger("VirdMemLoader: FALHA ao acrescentar valor na memoria",1);
         	}       	
         }	 
         return dataValues;
@@ -306,12 +380,15 @@ public class VirdMemLoader {
     		}
     		return  value;
     	}
+    	//VirdLogger.timeLogger("VirdMemLoader: erro ao criar objeto do tipo " + 
+    		//	this.typeAttr.get(pos) + " na posicao: " + pos,1);
     	
     	return null;
     }
     /**Interpretador do arquivo descritor da memoria, responsavel por identificar
      * a dimensao, tamanho, tipos e dados da memoria*/
     private void parseFile(NodeList nl) throws Exception {
+    	//VirdLogger.timeLogger("VirdMemLoader: interpretador XML iniciado",1);
         for (int i = 0; i < nl.getLength(); i++) {
             Node nodes = nl.item(i);
 
@@ -320,23 +397,37 @@ public class VirdMemLoader {
                 if (nodes.getNodeName().equals("posicao")) {
                     String pos1 = ((Element) nodes).getAttribute("dimensao");
                     String pos2 = ((Element) nodes).getAttribute("tamanho");
+                   // VirdLogger.timeLogger("VirdMemLoader: configuracao de memoria: dimensao -> " + 
+                    		//pos1 + " tamanho " + pos2,1);
+
                     setDimensionsAttr(Integer.parseInt(pos1));
                     setSizeAttr(Integer.parseInt(pos2));
                 }
 
                 else if (nodes.getNodeName().equals("valores")) {
+                	//VirdLogger.timeLogger("VirdMemLoader: obtendo tipo de dado da memoria ",1);
                     NodeList nodo = nodes.getChildNodes();
                     String   val  = nodo.item(0).getNodeValue();
+                    
+                   // VirdLogger.timeLogger("VirdMemLoader: dados da memoria sao do tipo: " + val,1);
+
                     setTypeAttr(parseTypeAttr(val));
                 }
 
                 else if (nodes.getNodeName().equals("dados")) {
+                //	VirdLogger.timeLogger("VirdMemLoader: Obtendo valores de memoria do XML ",1);
                     Node   nodo = nodes.getChildNodes().item(0);
                     String vals = nodo.getNodeValue();
+                    
+                  //  VirdLogger.timeLogger("VirdMemLoader: valores de memoria: " + vals,1);
+                    
                     setDateAttr(parseDateAttr(vals));
                     
                 }
                 else {
+                //	VirdLogger.timeLogger("VirdMemLoader: Erro no arquivo de memoria: XML " +
+                		//	"tag desconhecida " + nodes.getNodeName(),1);
+                	
                 }
             }
         }
@@ -344,6 +435,7 @@ public class VirdMemLoader {
     
     private void parseFileAnalyzer(NodeList nl) throws Exception {
     	ConcurrentHashMap<Integer, Object> memory = new ConcurrentHashMap<Integer, Object>();
+    	//VirdLogger.timeLogger("VirdMemLoader: interpretador XML iniciado",1);
         for (int i = 0; i < nl.getLength(); i++) {
             Node nodes = nl.item(i);
 
@@ -352,18 +444,28 @@ public class VirdMemLoader {
                 if (nodes.getNodeName().equals("posicao")) {
                     String pos1 = ((Element) nodes).getAttribute("dimensao");
                     String pos2 = ((Element) nodes).getAttribute("tamanho");
+                   // VirdLogger.timeLogger("VirdMemLoader: configuracao de memoria: dimensao -> " + 
+                    		//pos1 + " tamanho " + pos2,1);
+
                     setDimensionsAttr(Integer.parseInt(pos1));
                     setSizeAttr(Integer.parseInt(pos2));
                 }
                
                 else if (nodes.getNodeName().equals("valores")) {
+                	//VirdLogger.timeLogger("VirdMemLoader: obtendo tipo de dado da memoria ",1);
                     NodeList nodo = nodes.getChildNodes();
+                    //String   val  = nodo.item(0).getNodeValue();
+                    
+                   // VirdLogger.timeLogger("VirdMemLoader: dados da memoria sao do tipo: " + val,1);
+                    
                     ConcurrentHashMap <Integer, String> val = new ConcurrentHashMap <Integer, String>();
                     val.put(0, "Complex");
+                    
                     setTypeAttr(val);
                 }
                 
                 else if (nodes.getNodeName().equals("dados")) {
+                //	VirdLogger.timeLogger("VirdMemLoader: Obtendo valores de memoria do XML ",1);
                     Node   nodo = nodes.getChildNodes().item(0);
                     String vals = nodo.getNodeValue();
                     
@@ -373,8 +475,42 @@ public class VirdMemLoader {
                     memory.put(0, temp);
                     
                     setDateAttr(memory);
+                    
+                  //  VirdLogger.timeLogger("VirdMemLoader: valores de memoria: " + vals,1);
+                    //comentar esta parte e realizar o processo de moria normal 0 com a normal 1 com tudo zero para os resultados;
+                    /*
+                    int procs = 0;
+                    try {  
+                        //FileReader para o arquivo:  
+                    	File f = new File(System.getProperty("user.dir"));
+                    	FileReader fr = new FileReader(f.getParent()+"/tempFiles/hosts.txt");  
+                        //BufferedReader para o FileReader:  
+                        BufferedReader br = new BufferedReader(fr);  
+                        String temp;
+                        //A cada iteração, l~e uma linha do arquivo e atribui-a a temp:  
+                        while ((temp = br.readLine()) != null) {
+                            temp = temp.split(":")[1];
+                            procs += Integer.parseInt(temp);
+                        }  
+                    }  
+                    catch (FileNotFoundException e1) {  
+                        System.out.println("File not found!");  
+                    }
+                    
+                    ConcurrentHashMap<Integer, Object> temp;
+                    for(int k=0; k<procs; k++){
+		                temp = parseDateAttrAnalyzer(vals,k,procs);
+		                memory.put(k, temp);
+                    }
+                    
+                    for (int j = procs; j < 2*procs; j++)
+                    	memory.put(j, new ConcurrentHashMap<Integer, Object>());
+                    setDateAttr(memory);
+                    */
                 }
                 else {
+                //	VirdLogger.timeLogger("VirdMemLoader: Erro no arquivo de memoria: XML " +
+                		//	"tag desconhecida " + nodes.getNodeName(),1);
                 }
             }
         }
