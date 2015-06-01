@@ -14,6 +14,7 @@ public class VirdProcElem {
     Boolean proj;
     String  inputPosAttr;
     String  outputPosAttr;
+    String  controlListAttr;
     Integer iterator;
     String valueAttr;
     Boolean quantum;
@@ -32,7 +33,7 @@ public class VirdProcElem {
      * @param procID		ID do processo
      * @param iterator		Iterador do processo 
      * */
-    VirdProcElem(String actionAttr, String valueAttr, String outputPosAttr, String inputPosAttr, int procID, Integer iterator) {
+    VirdProcElem(String actionAttr, String valueAttr, String outputPosAttr, String inputPosAttr, String controlListAttr, int procID, Integer iterator) {
         this.inputPosAttr  = inputPosAttr;
         this.actionAttr    = actionAttr;
         this.outputPosAttr = outputPosAttr;
@@ -92,6 +93,14 @@ public class VirdProcElem {
      * @param inputPosAttr	Posicao(es) de memoria com os parametros de entrada*/
     public void setInputPosAttr(String inputPosAttr) {
         this.inputPosAttr = inputPosAttr;
+    }
+    public String getControlListAttr() {
+        return controlListAttr;
+    }
+    /**Seta a(s) posicao(es) da memoria com os parametros de entrada
+     * @param inputPosAttr	Posicao(es) de memoria com os parametros de entrada*/
+    public void setControListAttr(String controlListAttr) {
+        this.controlListAttr = controlListAttr;
     }
     /**Retorna o ID do processo*/
     public int getProcID() {

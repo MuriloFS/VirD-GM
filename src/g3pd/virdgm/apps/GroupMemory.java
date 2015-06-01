@@ -26,7 +26,7 @@ public class GroupMemory implements VirdApp {
 		//}
 	}
 	
-	public void app(String valueAttr, String input, String outputPosAttr,
+	public void app(String valueAttr, String input, String outputPosAttr, String controlListAttr,
 			Integer iterator, VirdMemory memory, ObjectOutputStream oos) throws IOException {		
 	}
 }

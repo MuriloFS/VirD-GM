@@ -1,6 +1,5 @@
 package g3pd.virdgm.core;
 
-//import g3pd.virdgm.misc.VirdLogger;
 import g3pd.virdgm.types.VTArray;
 import g3pd.virdgm.types.VTBoolean;
 import g3pd.virdgm.types.VTDouble;
@@ -10,41 +9,28 @@ import g3pd.virdgm.types.VTList;
 import g3pd.virdgm.types.VTLong;
 import g3pd.virdgm.types.VTPoint;
 import g3pd.virdgm.types.VTString;
-import org.jscience.mathematics.number.Complex;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.jscience.mathematics.number.Complex;
 import org.w3c.dom.*;
 
 
 import javax.xml.parsers.*;
+
 /**Classe responsavel pela interpretacao do arquivo descritor da memoria e mapeamento
  * dos estados de memoria na VirD-GM*/
 public class VirdMemLoader {
-    //Vector <Object> dataAttr;
-	ConcurrentHashMap<Integer, Object>dataAttr = new ConcurrentHashMap<Integer, Object>();
-	ConcurrentHashMap<Integer, String>typeAttr = new ConcurrentHashMap<Integer, String>();
-	boolean GPU;
-    int    dimensionsAttr;
-    String inputFile;
-    int    sizeAttr;
-   // Vector<String>typeAttr;
+	ConcurrentHashMap <Integer,Object>	dataAttr 		= new ConcurrentHashMap <Integer,Object>();
+	ConcurrentHashMap <Integer,String>	typeAttr 		= new ConcurrentHashMap <Integer,String>();
+	boolean								GPU;
+    int									dimensionsAttr;
+    String								inputFile;
+    int									sizeAttr;
     
-//    public static void main(String [] args) {
-//    	VirdMemLoader vml = new VirdMemLoader("/home/felipe/svn/VirD-GM/xml/mem30.xml");
-////    	System.out.println(vml.getDateAttr().size());    	
-//    }
     /**Metodo que recebe o arquivo descritor da memoria e verifica sua integridade
      * @param inputFile		Nome do arquivo descritor da memoria*/
     public VirdMemLoader(String inputFile) {
@@ -93,15 +79,7 @@ public class VirdMemLoader {
         }
     }
 
-//    private boolean validateArgs() {
-//    	boolean validate = true;
-//    	if (dataAttr.size() != typeAttr.size())
-//    		validate = false;
-//    		    		
-//    	
-//    	
-//    	return validate;
-//    }
+
     /**Metodo responsavel por abrir o arquivo descritor da memoria e inicializar o
      * parser interpretador
      * */

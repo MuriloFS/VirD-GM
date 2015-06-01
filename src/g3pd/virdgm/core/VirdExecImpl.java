@@ -45,7 +45,7 @@ public class VirdExecImpl implements VirdExec {
 	 * @param host			Host que recebera o processo para avaliacao
 	 * @param port 			Porta onde ocorre a comunicacao
 	 * */
-	public boolean send(String actionAttr,  String valueAttr, String inputPosAttr, String outputPosAttr, Integer iterator, VirdMemory memory,  String host, Integer port)
+	public boolean send(String actionAttr,  String valueAttr, String inputPosAttr, String outputPosAttr, String controlListAttr, Integer iterator, VirdMemory memory,  String host, Integer port)
 	{
 	      ObjectOutputStream oos = null;
 	      ObjectInputStream ois = null;
@@ -66,6 +66,7 @@ public class VirdExecImpl implements VirdExec {
 	        myo.addObject(valueAttr); //1
 	        myo.addObject(inputPosAttr); //2
 	        myo.addObject(outputPosAttr); //3
+	        myo.addObject(controlListAttr);
 	        myo.addObject(iterator); //4
 	        
 	        /*
@@ -114,7 +115,7 @@ public class VirdExecImpl implements VirdExec {
 	 * @param memory		Espaco de memoria utilizado, com os parametros
 	 * @param oos			Objeto para escrita na memoria
 	 * */
-    public boolean exec(String actionAttr, String valueAttr, String inputPosAttr, String outputPosAttr, Integer iterator, VirdMemory memory, ObjectOutputStream oos) {
+    public boolean exec(String actionAttr, String valueAttr, String inputPosAttr, String outputPosAttr, String controlListAttr, Integer iterator, VirdMemory memory, ObjectOutputStream oos) {
         memory.setOutputStream(oos);
         if(iterator == null) iterator = 0;
 
@@ -141,8 +142,8 @@ public class VirdExecImpl implements VirdExec {
        	Object[] args = null;
        	
 		if (actionAttr.equals("QGMAnalyzer")){//AQUI
-        	types = new Class[] {String.class, String.class , String.class, Integer.class, VirdMemory.class, ObjectOutputStream.class};
-           	args = new Object[] {valueAttr, inputPosAttr, outputPosAttr, iterator, memory, oos };
+        	types = new Class[] {String.class, String.class , String.class, String.class, Integer.class, VirdMemory.class, ObjectOutputStream.class};
+           	args = new Object[] {valueAttr, inputPosAttr, outputPosAttr, controlListAttr, iterator, memory, oos };
         }else{
 	       	types = new Class[] { Integer.class, Integer[].class , String.class, Integer.class, VirdMemory.class, ObjectOutputStream.class};
 	       	args = new Object[] {valueput, input, outputPosAttr, iterator, memory, oos };

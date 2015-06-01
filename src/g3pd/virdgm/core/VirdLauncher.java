@@ -22,31 +22,24 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  * */
 public class VirdLauncher {
-	Vector<VirdProcElem> procLocked  = new Vector<VirdProcElem>();
-	Vector<VirdProcElem> procReady   = new Vector<VirdProcElem>(); 
-	//Vector<HostId>       freeNodes   = new Vector<HostId>();
-	Vector <String>freeNodes = new Vector<String>();
-	int[][]              adjMatrix; 
-	Integer numproc;
-	private final Object lock = new Object();
-	//    CellInformationBase  cib;
-	//    Executor             executor;
-	//    HostId[]             hosts;
-	//    ObjectId[]           objectIds;
-	VirdMemLoader        virdMemLoader;
-	VirdProcLoader       virdProcLoader;
-	Vector <Node>envNodes; 
-	Vector <Node>procelemNodes;
-	//    Worb                 worb;
-	//    Logger				 logger;
-	public static Integer	executionID; 
-	public static Integer   priority = 0;//Modo Depuracao com ou sem logger
-	ConcurrentHashMap<Integer, String>memoryType;
-	ConcurrentHashMap<Integer, Object>memoryData;
-	public static VirdMemory virdMemory;
-//	public VirdBackMemory virdBackMemory;
-	private boolean memOK = false;
-	public java.util.concurrent.Semaphore memStop = new java.util.concurrent.Semaphore(1);
+	Vector<VirdProcElem>					procLocked		= new Vector<VirdProcElem>();
+	Vector<VirdProcElem>					procReady		= new Vector<VirdProcElem>(); 
+	Vector<String>							freeNodes 		= new Vector<String>();
+	int[][]              					adjMatrix; 
+	Integer 								numproc;
+	private final Object					lock			= new Object();
+	VirdMemLoader							virdMemLoader;
+	VirdProcLoader							virdProcLoader;
+	Vector<Node>							envNodes; 
+	Vector<Node> 							procelemNodes;
+	public static Integer					executionID; 
+	public static Integer   				priority		= 0; //Modo Depuracao com ou sem logger
+	ConcurrentHashMap<Integer, String>		memoryType;
+	ConcurrentHashMap<Integer, Object>		memoryData;
+	public static VirdMemory 				virdMemory;
+	private boolean 						memOK			= false;
+	public java.util.concurrent.Semaphore	memStop			= new java.util.concurrent.Semaphore(1);
+
 	/**
 	 * Construtor responsavel por disparar o componente VirdLoader, que obtem as informacoes dos arquivos
 	 * descritores da memoria e processos, e identifica a lista de nodos disponiveis
@@ -300,6 +293,7 @@ public class VirdLauncher {
 					final String outputPosAttr = virdProcElem.getOutputPosAttr();
 					final String inputPosAttr = virdProcElem.getInputPosAttr();
 					final String valueAttr = virdProcElem.getValueAttr();
+					final String controlListAttr = virdProcElem.getControlListAttr();
 					final Integer iterator = virdProcElem.getIterator();
 
 					Thread schdl = new Thread()
@@ -310,7 +304,7 @@ public class VirdLauncher {
 							if (virdProcElem.isProjNode())
 								selectProj(virdProcElem, procDone);
 							else {
-								virdExec.send(actionAttr, valueAttr, inputPosAttr, outputPosAttr, iterator, virdMemory, host, port);
+								virdExec.send(actionAttr, valueAttr, inputPosAttr, outputPosAttr, controlListAttr, iterator, virdMemory, host, port);
 							}
 							long tempoFinalProc = System.currentTimeMillis();
 							synchronized (lock){

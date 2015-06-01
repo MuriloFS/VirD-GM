@@ -1,395 +1,9 @@
-//package g3pd.virdgm.apps;
-//
-//import org.jscience.mathematics.number.Complex;
-//
-//import java.util.ArrayList;
-//import java.util.Vector;
-//import java.util.concurrent.ConcurrentHashMap;
-//import java.io.IOException;
-//import java.io.ObjectOutputStream;
-//import g3pd.virdgm.core.VirdLauncher;
-//import g3pd.virdgm.core.VirdApp;
-//import g3pd.virdgm.core.VirdMemory;
-//
-//public class QGMAnalyzer implements VirdApp {	
-//	public void app(Integer value, String input, Integer output, Integer iterator, VirdMemory memory, ObjectOutputStream oos) throws IOException {
-//		String [] op = input.split("\\+");
-//		int numStates = (int)Math.pow(2, op[0].split(",").length);
-//		int tam = numStates / (memory.getMemorySize()/2);
-//        int resto = numStates%(memory.getMemorySize()/2);
-//        
-//		ConcurrentHashMap<Integer, Complex> result = new ConcurrentHashMap<Integer, Complex>();
-//		String [] operations;
-//		ArrayList component;
-//		int begin = 0;
-//		int end = 0;
-//		if(output<resto){
-//			begin = output*(tam+1);
-//			end = (output+1)*(tam+1);
-//		}else{
-//			begin = output*tam;
-//			end = (output+1)*(tam);
-//		}
-//
-//		int pos = 0;
-//		for(int i=begin; i<end; i++){		
-//			operations = ReadOperations(input, i);
-//			component = GetComponent(operations, i);
-//			result.put(pos, ApplyComponent(component,memory,operations));
-//			pos++;
-//		}
-//		memory.updateMemory(result, (output+(memory.getMemorySize()/2)));
-//	}
-//	
-//	private String [] ReadOperations(String inputPosAttr, Integer position){	
-//		String [] finalValues;
-//		if(inputPosAttr.startsWith("(")){
-//			String begin = new String("");
-//			String end = new String("");
-//			int ind;					
-//			String [] operations = inputPosAttr.split("\\+");
-//			String [][] finalOperators = new String [operations.length][operations[0].split(",").length];
-//			String [] exp;
-//			String values = new String("");
-//			Vector<String> controlValues = new Vector<String>();
-//			Vector<Integer> targetQubits = new Vector<Integer>();
-//			for(int comp=0; comp<operations.length; comp++){
-//				operations[comp] = operations[comp].trim();
-//				operations[comp] = operations[comp].substring(1, operations[comp].length()-1);
-//				targetQubits.clear();
-//				exp = operations[comp].split(",");
-//				values = "";
-//				for(int op=0; op<exp.length; op++){
-//					if(exp[op].length() >= 6){
-//						if(exp[op].substring(0, 7).equals("Control")){
-//							begin = exp[op].substring(0, 7);
-//							ind = exp[op].indexOf("(");
-//							values = values + (exp[op].substring(ind+1, ind+2));
-//							end = exp[op].substring(ind,exp[op].length()-1);
-//							exp[op] = begin + end;
-//							exp[op] = exp[op].replace("(", "");
-//							exp[op] = exp[op].replace(")", "");
-//						}
-//						else if(exp[op].substring(0, 6).equals("Target")){
-//							ind = exp[op].indexOf("(");
-//							end = exp[op].substring(ind, exp[op].length()-1);
-//							exp[op] = end;
-//							exp[op] = exp[op].replace("(", "");
-//							exp[op] = exp[op].replace(")", "");
-//							targetQubits.add(Integer.valueOf(op));
-//						}
-//						finalOperators[comp][op] = exp[op];
-//					}else
-//						finalOperators[comp][op] = exp[op];
-//					
-//				}
-//				controlValues.add(values);
-//			}
-//			
-//			int qubits = finalOperators[0].length;
-//	
-//			String binNumber = Integer.toBinaryString(position);
-//			while(binNumber.length() < qubits)
-//				binNumber = "0" + binNumber;
-//			ArrayList<Integer> struct = new ArrayList<Integer>();
-//			for(int cont=0; cont<qubits; cont++){
-//				if (finalOperators[0][cont].equals("Control0") || finalOperators[0][cont].equals("Control1"))
-//					struct.add(Integer.valueOf(cont));
-//			}
-//			String newBin = new String("");
-//			int posBit;
-//			for (int bit=0; bit<struct.size(); bit++){
-//				posBit = struct.get(bit);
-//				newBin = newBin + binNumber.charAt(posBit);
-//			}
-//			
-//			String [] opList = new String [finalOperators[0].length];
-//			boolean found = false;
-//			for(int j=0; j<controlValues.size(); j++){
-//				if(newBin.equals(controlValues.get(j))){
-//					opList = finalOperators[j];
-//					found = true;
-//				}
-//			}
-//			
-//			if(found == false){
-//				opList = finalOperators[0];
-//				for(int op=0; op<opList.length; op++){
-//					if (targetQubits.contains(Integer.valueOf(op))){
-//						ind = targetQubits.indexOf(Integer.valueOf(op));
-//						opList[op] = "Id";
-//						targetQubits.remove(ind);
-//					}else if(opList[op].length() >= 7){ 
-//							if (opList[op].substring(0, 7).equals("Control")){
-//							opList[op] = opList[op].substring(0, 7) + newBin.charAt(0);
-//							newBin = newBin.substring(1);
-//						}
-//					}
-//				}
-//			}
-//			finalValues = opList;
-//			
-//		}else{
-//			String [] components = inputPosAttr.split(",");
-//			Integer qubits = components.length;
-//			String binNumber = Integer.toBinaryString(position);
-//			while(binNumber.length() < qubits)
-//				binNumber = "0" + binNumber;
-//			Vector<Integer> struct = new Vector<Integer>();
-//			for(int cont=0; cont<qubits; cont++){
-//				if(components[cont].length() >= 4){
-//					if(components[cont].substring(0, 4).equals("Swap"))
-//						struct.add(Integer.valueOf(cont));
-//				}
-//			}
-//			String newBin = new String("");
-//			Integer posBit;
-//			for(int bit=0; bit<struct.size(); bit++){
-//				posBit = struct.get(bit);
-//				newBin = newBin + binNumber.substring(posBit, posBit+1);
-//			}
-//			finalValues = new String [components.length];
-//			for(int i=0; i<components.length; i++){
-//				if(components[i].length() > 4){
-//					if(components[i].substring(0,4).equals("Swap")){
-//						components[i] = components[i]+"("+newBin.substring(0,1)+")";
-//						newBin = newBin.substring(1);
-//					}
-//					components[i] = components[i].trim();
-//				}
-//				finalValues[i] = components[i];
-//			}
-//			boolean found;
-//			int pos;
-//			String temp = new String("");
-//			for(int op=0; op<finalValues.length; op++){
-//				if(finalValues[op].length() > 4){
-//					if(finalValues[op].substring(0,4).equals("Swap")){
-//						found = false;
-//						pos = op+1;
-//						while (found == false && pos < finalValues.length){
-//							if(finalValues[op].length()>5 && finalValues[pos].length()>5){
-//								if(finalValues[op].substring(0,5).equals(finalValues[pos].substring(0,5))){
-//									temp = finalValues[op].substring(6,7);
-//									finalValues[op] = finalValues[pos].substring(0,4)+finalValues[pos].substring(6,7);
-//									
-//									finalValues[pos] = finalValues[pos].substring(0,4)+temp;
-//									found = true;
-//								}
-//							}
-//							pos++;
-//						}
-//					}
-//				}
-//				finalValues[op] = finalValues[op].trim();
-//			}
-//			
-//			}
-//	return finalValues;
-//	}
-//	
-//	private ArrayList GetComponent(String [] operations, Integer output ){
-//		int qubits = operations.length;
-//		String binNumber = Integer.toBinaryString(output);
-//		while(binNumber.length() < qubits)
-//			binNumber = "0" + binNumber;
-//
-//		Complex [][] vectors = new Complex [operations.length][(int)Math.pow(2,qubits)];
-//		for(int j=0; j<operations.length; j++)
-//			vectors[j] = GetVector(operations[j], Integer.parseInt(binNumber.substring(j,j+1)));
-//		
-//		ArrayList result = new ArrayList();
-//  		ArrayList list = new ArrayList ();
-//		result.add((Complex)vectors[0][0]);
-//		result.add(Integer.valueOf(0));
-//		
-//		result.add((Complex)vectors[0][1]);
-//		result.add(Integer.valueOf(1));
-//		
-//		Complex data, v1, v2;
-//		Integer pos;
-//		int index;
-//		Complex zero = Complex.ZERO;
-//		for(int vec=1; vec<vectors.length; vec++){
-//			list.clear();
-//			for(int ind=0; ind<result.size()/2; ind++){
-//				for(int ind2=0; ind2<vectors[vec].length; ind2++){
-//					index = 2*ind;
-//					v1 = (Complex)result.get(index);
-//					v2 = vectors[vec][ind2];
-//					data = v1.times(v2);
-//					if (!(data.equals(zero))){
-//						pos = (Integer)result.get(index+1);
-//						pos = (pos*2) + ind2;
-//						list.add(data);
-//						list.add(pos);
-//					}
-//				}
-//			}
-//			result.clear();
-//			result.addAll(list);
-//		}
-//		return result;
-//	}
-//	
-//	private Complex ApplyComponent(ArrayList component, VirdMemory memory, String [] operations){
-//		int iter = (int)Math.pow(2,operations.length);
-//		int resto = iter%(memory.getMemorySize()/2);
-//		float posOnHashs = iter/(memory.getMemorySize()/2);
-//		int readPos = 0;
-//		Float index = null;
-//		Float position = null;
-//		
-//		Complex result = Complex.ZERO;
-//		Complex temp = Complex.ZERO;
-//		Complex value;
-//		Integer pos;
-//		ConcurrentHashMap<Integer, Complex> mem = null;
-//		for(int element=0; element<component.size(); element = element+2){
-//			value = (Complex)component.get(element);
-//			pos = (Integer)component.get(element+1);
-//			if(posOnHashs>pos){
-//				mem = (ConcurrentHashMap<Integer, Complex>)memory.readMemory(0);
-//				result = result.plus(value.times(mem.get(pos)));
-//			}else{
-//				index = pos/posOnHashs;
-//				position = pos-(index.intValue()*posOnHashs);
-//				mem = (ConcurrentHashMap<Integer, Complex>)memory.readMemory(index.intValue());
-//				temp = mem.get(position.intValue());
-//				result = result.plus(value.times(temp));
-//			}
-//		}
-//		return result;
-//	}
-//	
-//	
-//	private Complex [] GetVector(String nameOperator, Integer line) {
-//		if (nameOperator.equals("X")){
-//			Complex [][] matrix = new Complex[2][2];
-//			matrix[0][0] = Complex.ZERO;
-//			matrix[0][1] = Complex.ONE;
-//			matrix[1][0] = Complex.ONE;
-//			matrix[1][1] = Complex.ZERO;
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("Y")){
-//			Complex [][] matrix = new Complex[2][2];
-//	        matrix[0][0] = Complex.ZERO;
-//	        matrix[0][1] = Complex.valueOf(0.0, -1.0);
-//	        matrix[1][0] = Complex.I;
-//	        matrix[1][1] = Complex.ZERO;
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("Z")){
-//			Complex [][] matrix = new Complex[2][2];
-//			matrix[0][0] = Complex.ONE;
-//			matrix[0][1] = Complex.ZERO;
-//			matrix[1][0] = Complex.ZERO;
-//			matrix[1][1] = Complex.valueOf(-1.0, 0.0);
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("H")){
-//			Complex [][] matrix = new Complex[2][2];
-//			Complex value = Complex.valueOf(Math.sqrt(0.5), 0);
-//			matrix[0][0] = value;
-//			matrix[0][1] = value;
-//			matrix[1][0] = value;
-//			matrix[1][1] = value.times(-1.0);
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("S")){
-//			Complex [][] matrix = new Complex[2][2];
-//			matrix[0][0] = Complex.ONE;
-//			matrix[0][1] = Complex.ZERO;
-//			matrix[1][0] = Complex.ZERO;
-//			matrix[1][1] = Complex.I;
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("T")){
-//			Complex [][] matrix = new Complex[2][2];
-//			matrix[0][0] = Complex.ONE;
-//			matrix[0][1] = Complex.ZERO;
-//			matrix[1][0] = Complex.ZERO;
-//			matrix[1][1] = Complex.ONE.plus(Complex.I).times(Math.sqrt(0.5));
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("Id")){
-//			Complex [][] matrix = new Complex[2][2];
-//			matrix[0][0] = Complex.ONE;
-//	        matrix[0][1] = Complex.ZERO;
-//	        matrix[1][0] = Complex.ZERO;
-//	        matrix[1][1] = Complex.ONE;
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("P0")){
-//			Complex [][] matrix = new Complex[2][2];
-//			matrix[0][0] = Complex.ONE;
-//	        matrix[0][1] = Complex.ZERO;
-//	        matrix[1][0] = Complex.ZERO;
-//	        matrix[1][1] = Complex.ZERO;
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("P1")){
-//			Complex [][] matrix = new Complex[2][2];
-//			matrix[0][0] = Complex.ZERO;
-//	        matrix[0][1] = Complex.ZERO;
-//	        matrix[1][0] = Complex.ZERO;
-//	        matrix[1][1] = Complex.ONE;
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("Control0")){
-//			Complex [][] matrix = new Complex[2][2];
-//			matrix[0][0] = Complex.ONE;
-//	        matrix[0][1] = Complex.ZERO;
-//	        matrix[1][0] = Complex.ZERO;
-//	        matrix[1][1] = Complex.ZERO;
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("Control1")){
-//			Complex [][] matrix = new Complex[2][2];
-//			matrix[0][0] = Complex.ZERO;
-//	        matrix[0][1] = Complex.ZERO;
-//	        matrix[1][0] = Complex.ZERO;
-//	        matrix[1][1] = Complex.ONE;
-//			return matrix[line];
-//		}
-//		else if (nameOperator.equals("Swap0")){
-//			Complex [] vector = new Complex[2];
-//			vector[0] = Complex.ONE;
-//	        vector[1] = Complex.ZERO;
-//			return vector;
-//		}
-//		else if (nameOperator.equals("Swap1")){
-//			Complex [] vector = new Complex[2];
-//			vector[0] = Complex.ZERO;
-//	        vector[1] = Complex.ONE;
-//			return vector;
-//		}
-//		return null;
-//	}
-//
-//	@Override
-//	public void app(Integer value, Integer[] input, Integer output,
-//			Integer iterator, VirdMemory memory, ObjectOutputStream oos)
-//			throws IOException {
-//		// TODO Auto-generated method stub
-//		
-//	}
-//}
-
 package g3pd.virdgm.apps;
 
-import org.jscience.mathematics.number.Complex;
-
-import static jcuda.driver.JCudaDriver.*;
-import static jcuda.runtime.JCuda.*;
+import g3pd.virdgm.core.VirdApp;
+import g3pd.virdgm.core.VirdMemory;
 
 import java.io.*;
-
-import jcuda.*;
-import jcuda.driver.*;
-
-
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -401,58 +15,64 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import g3pd.virdgm.core.VirdApp;
-import g3pd.virdgm.core.VirdMemory;
+
+import org.jscience.mathematics.number.Complex;
+import static jcuda.driver.JCudaDriver.*;
+import static jcuda.runtime.JCuda.*;
+import jcuda.*;
+import jcuda.driver.*;
 
 public class QGMAnalyzer implements VirdApp{
-	public int qubits;
-	public int num_reads;
-	public String partial_read;
-	public int num_writes;
-	public int partial_write;
-	public String shift_pos;
-	public int sf_pos;
-	public String shift_par;
-	public int sf_par;
+	private int qubits;
+	private int num_reads;
+	private int num_writes;
+	private int partial_write;
+	private int sf_pos;
+	private int sf_par;
+	private int num_qpps;
+	private int qpp_atual;
+	private int totalElements;
+	private int iterations;
+	private int soma_dim;
+	private int dimGrid, dimBlock;
+	private int outerMatrices;
+	private int lineZero[];
+	private int lineOne[];
+	private int initMatrix[];
+	private int initPos[];
+	private int dimensions[];
+	private int dimensions_sum[];
+	private int elementsNumber[];
+	private int columns[];
+	private int tamanho;
+	private int vp;
 	
-	public int num_qpps;
-	public int qpp_atual;
-	public int totalElements;
-	public int iterations;
-	public int soma_dim;
-	public int dimGrid, dimBlock;
-	public int outerMatrices;
-	public Vector <Integer> len;
-	public Vector <Integer> values;
-	public Vector <Integer> positions;
-	public Vector <Integer> widths;
-	public Vector <Integer> elementsList;
-	public Vector <Integer> Zero;
-	public Vector <Integer> One;
-	public boolean GPU = false;
-	public boolean firstTime = true;
+	private float matrixList[];
+	private float lastMatrix[];
 	
-	public float matrixList[];
-	public float lastMatrix[];
-	public int lineZero[];
-	public int lineOne[];
-	public int initMatrix[];
-	public int initPos[];
-	public byte widthLine[];
-	public byte widthList[];
-	public int dimensions[];
-	public int dimensions_sum[];
-	public byte exps[];
-	public int elementsNumber[];
-	public int columns[];
-	public int tamanho;
-	public int vp;
+	private boolean GPU = false;
+	private boolean firstTime = true;
 	
+	private byte widthLine[];
+	private byte widthList[];
+	private byte exps[];
+	
+	private String shift_par;
+	private String shift_pos;
+	private String partial_read;
+	
+	private Vector <Integer> len;
+	private Vector <Integer> values;
+	private Vector <Integer> positions;
+	private Vector <Integer> widths;
+	private Vector <Integer> elementsList;
+	private Vector <Integer> Zero;
+	private Vector <Integer> One;
 	
 	
 	@SuppressWarnings("unchecked")
-	public void app(String valueAttr, String input, String outputPosAttr, Integer iterator, VirdMemory memory, ObjectOutputStream oos) throws IOException {
-			
+	public void app(String valueAttr, String input, String outputPosAttr, String controlListAttr, Integer iterator, VirdMemory memory, ObjectOutputStream oos) throws IOException{
+		int bound;	
 		qubits = 0;
 		System.out.println("AQUI\n");
 		
@@ -461,7 +81,7 @@ public class QGMAnalyzer implements VirdApp{
 		System.out.println("outputPosAttr: " + outputPosAttr);
 		System.out.println("iterator: " + iterator);
 			
-		if (iterator == -1){//Processo Quântico
+		if (iterator == -1){ //Processo Quântico
 			GPU = memory.GPU;
 			num_qpps = 1;
 			
@@ -494,6 +114,9 @@ public class QGMAnalyzer implements VirdApp{
 			
 			int opIndex = 0;
 			for (int pageID = 0; pageID < pos.length; pageID++){
+				for(int i = 0; i < funcao[pageID].length; i++){
+					System.out.println(funcao[pageID][i]);
+				}
 				Pages.add(this.PageBuilder(funcao[pageID], pos[pageID], par[pageID]));
 				opIndex += funcao[pageID].length;
 				sizesList.add((int)Math.pow(2, qubits-opIndex));
@@ -541,7 +164,13 @@ public class QGMAnalyzer implements VirdApp{
 		        
 		        System.out.println("\nMEN_IN " + men_in.length);
 		        //for (int i = 0; i < men_in.length; i++){
-		        for (int i = 0; i < 10; i++){
+		        
+		        bound = 10;
+		        if(men_in.length < 10){
+		        	bound = men_in.length;
+		        }
+
+		        for (int i = 0; i < bound; i++){
 		        	System.out.print(men_in[i] + " " + men_in[i+1] + ", ");
 		        	i++;
 		        }
@@ -637,8 +266,13 @@ public class QGMAnalyzer implements VirdApp{
 		    	
 		    	
 		    	System.out.println("MEMORIA FINAL");
+		    	
+		    	bound = 128;
+		    	if(hostOutput.length < 128){
+		    		bound = hostOutput.length;
+		    	}
 		    	//for (int i = 0; i < tamanho * 2 / num_writes; i++){
-		    	for (int i = 0; i < 128; i++){
+		    	for (int i = 0; i < bound; i++){
 		    		System.out.println("pos: " + i/2 + "  " + hostOutput[i] + " " + hostOutput[i+1]);
 		    		i++;
 		    	}
@@ -750,7 +384,7 @@ public class QGMAnalyzer implements VirdApp{
 	
 	
 	private Page PageBuilder(String[] funcao, String[] pos, String[] par){
-		Page page= new Page();
+		Page page = new Page();
 		Bloco bloco;
 		page.blocos = new Vector <Bloco>();
 		
@@ -759,12 +393,14 @@ public class QGMAnalyzer implements VirdApp{
 		int lineZ, lineO;
 		int line, column;
 		
-		shift_pos  += pos[0];
+		shift_pos += pos[0];
 		shift_par += par[0];
 		
-		if (GPU) widths.add((int)Math.pow(2, funcao.length));
+		if (GPU){
+			widths.add((int)Math.pow(2, funcao.length));
+		}
 		
-		num_reads = num_reads * (int)Math.pow(2, funcao.length) / par.length;
+		num_reads  = num_reads  * (int)Math.pow(2, funcao.length) / par.length;
 		num_writes = num_writes * (int)Math.pow(2, funcao.length) / pos.length;
 		
 		/*
@@ -818,8 +454,9 @@ public class QGMAnalyzer implements VirdApp{
 					line = Integer.parseInt(pos[l].substring(op, op+1), 2);
 					column = Integer.parseInt(par[c].substring(op, op+1), 2);
 					value = GetValue(funcao[op], line, column);
-					
+					System.out.println("antes");
 					temp = temp.times(value);
+					System.out.println("depois	");
 					op+=1;
 				}
 				//System.out.println("");
@@ -1165,8 +802,7 @@ public class QGMAnalyzer implements VirdApp{
 	    catch (InterruptedException e)
 	    {
 	        Thread.currentThread().interrupt();
-	        throw new IOException(
-	            "Interrupted while waiting for nvcc output", e);
+	        throw new IOException("Interrupted while waiting for nvcc output", e);
 	    }
 	
 	    if (exitValue != 0)
@@ -1174,8 +810,7 @@ public class QGMAnalyzer implements VirdApp{
 	        System.out.println("nvcc process exitValue "+exitValue);
 	        System.out.println("errorMessage:\n"+errorMessage);
 	        System.out.println("outputMessage:\n"+outputMessage);
-	        throw new IOException(
-	            "Could not create .ptx file: "+errorMessage);
+	        throw new IOException("Could not create .ptx file: "+errorMessage);
 	    }
 	
 	    System.out.println("Finished creating PTX file");
@@ -1225,49 +860,6 @@ public class QGMAnalyzer implements VirdApp{
       	cuModuleGetGlobal(expC, sizeArray, module, "expC");
       	size = (int)sizeArray[0];
         cuMemcpyHtoD(expC, Pointer.to(exps), size);
-        
-        /*
-        CUdeviceptr positionsC = new CUdeviceptr();
-        cuModuleGetGlobal(positionsC, sizeArray, module, "positionsC");
-        size = (int)sizeArray[0];
-        cuMemcpyHtoD(positionsC, Pointer.to(positionsList), size);
-        
-        CUdeviceptr lastPositionsC = new CUdeviceptr();
-		cuModuleGetGlobal(lastPositionsC, sizeArray, module, "lastPositionsC");
-		size = (int)sizeArray[0];
-        cuMemcpyHtoD(lastPositionsC, Pointer.to(lastPositions), size);
-        
-        CUdeviceptr widthC = new CUdeviceptr();
-		cuModuleGetGlobal(widthC, sizeArray, module, "widthC");
-		size = (int)sizeArray[0];
-        cuMemcpyHtoD(widthC, Pointer.to(widthList), size);
-        
-        CUdeviceptr widthLinesC = new CUdeviceptr();
-      	cuModuleGetGlobal(widthLinesC, sizeArray, module, "widthLinesC");
-      	size = (int)sizeArray[0];
-        cuMemcpyHtoD(widthLinesC, Pointer.to(widthLine), size);
-        
-        CUdeviceptr multC = new CUdeviceptr();
-		cuModuleGetGlobal(multC, sizeArray, module, "multC");
-		size = (int)sizeArray[0];
-        cuMemcpyHtoD(multC, Pointer.to(mult), size);
-        
-        
-        CUdeviceptr multColumnsC = new CUdeviceptr();
-		cuModuleGetGlobal(multColumnsC, sizeArray, module, "multColumnsC");
-		size = (int)sizeArray[0];
-        cuMemcpyHtoD(multColumnsC, Pointer.to(multColumns), size);
-        
-        CUdeviceptr columnsC = new CUdeviceptr();
-		cuModuleGetGlobal(columnsC, sizeArray, module, "columnsC");
-		size = (int)sizeArray[0];
-        cuMemcpyHtoD(columnsC, Pointer.to(columns), size);
-        
-        CUdeviceptr elementsNumberC = new CUdeviceptr();
-		cuModuleGetGlobal(elementsNumberC, sizeArray, module, "elementsNumberC");
-		size = (int)sizeArray[0];
-        cuMemcpyHtoD(elementsNumberC, Pointer.to(elementsNumber), size);
-        */
 	}
 	
 	private String [] ReadOperations(String inputPosAttr, Integer position){
@@ -1511,7 +1103,7 @@ public class QGMAnalyzer implements VirdApp{
 	private Complex ApplyValues(ConcurrentHashMap<Integer, Complex> hash, int posOnHashs, int qubits, Vector<Vector<Object>> Lvpp, int [] sizesList, VirdMemory memory, Complex value, int index, int startPos, Complex res){
 		int pos;
 		Vector<Object> line = Lvpp.get(index);
-		for(int i=0; i<line.size(); i++){
+		for(int i = 0; i < line.size(); i++){
 			Vector<Object> tuple = (Vector<Object>) line.get(i);
 			if(index == (Lvpp.size() - 1) ){
 				pos = startPos + (Integer)tuple.get(1);
@@ -1533,7 +1125,7 @@ public class QGMAnalyzer implements VirdApp{
 	}
 
 	private Complex GetValue(String nameOperator, int line, int x) {
-		//System.oudim_somat.println("GETVALUE:  " + nameOperator + " " + line + " " + x);
+		System.out.println("GETVALUE:  " + nameOperator + " " + line + " " + x);
 		if (nameOperator.equals("X")){
 			if (line == 0)
 				return Complex.valueOf((double)x, 0);
@@ -1613,27 +1205,32 @@ public class QGMAnalyzer implements VirdApp{
 	
 	private String[][] parserInput(String entrada){
 		int begin, q;
-		//System.out.println(entrada);
+		System.out.println(entrada);
 		
 		//retira o '[' inicial e o ']' final
 		entrada = entrada.substring(1 , entrada.length() - 1);
-		
 		//separa emdim_soma substrings
 		String [] partes = entrada.split("]");
+		
+		for(int i = 0; i < partes.length; i++){
+			System.out.println("Parte" + i + ": " + partes[i]);
+		}
 		
 		String[][] saida = new String[partes.length][];
 		
 		q = 0;
 		//separa a entrada em vetores de listas de strings
-		for(int i=0; i<partes.length; i++){
+		for(int i = 0; i < partes.length; i++){
 			begin = 2;
-			if (i==0) {begin = 1;}
+			if (i == 0){
+				begin = 1;
+			}
 			
 			//retira os '[' , ']' das substrings; 
 			partes[i] = partes[i].substring(begin);
 			
 			//separa as substrings em uma lista de strings
-			saida[i] = (partes[i].split(","));
+			saida[i] = partes[i].split(",");
 			q += saida[i].length;
 			
 		}
@@ -1720,95 +1317,20 @@ public class QGMAnalyzer implements VirdApp{
 	        return baos.toByteArray();
 	    }
 	
-	
-	/*
-	@SuppressWarnings("unchecked")
-	private void QP_first(Page page, Integer size, VirdMemory memory, ConcurrentHashMap <Integer, Complex> men_out, Set <Integer> newValues, Complex partialValue, int basePos, int memPos){
-		int pos, writePos;
-		Complex res;
-		Integer VPPid;
-		Enumeration <Bloco> line;
-		Bloco b;
-		Enumeration <Integer> p;
-		Integer position;
-		Enumeration <Complex> c;
-		Complex complex;
+	private void eraseMemory(ConcurrentHashMap<Integer,Complex> mem, int qubits){
+		int valor = (int)Math.pow(2,qubits);
 		
-		ConcurrentHashMap<Integer, Complex> hash;
-		hash = (ConcurrentHashMap<Integer, Complex>)memory.readMemory(0);
-
-		for (line = page.blocos.elements(); line.hasMoreElements(); ){
-			res = Complex.ZERO;
-			b = line.nextElement();
-			VPPid = b.VPPid;
-			c = b.complex.elements();
-			for (p = b.pos.elements(); p.hasMoreElements(); ){
-				position = p.nextElement();
-				complex = c.nextElement();
-				pos = basePos + position;
-				res = res.plus(partialValue.times(complex.times(hash.get(pos))));
-			}
-			writePos = memPos + (VPPid *size);
-			
-			System.out.println("Valor  :  "+res);
-			System.out.println("Posicao:  "+writePos);
-			
-			men_out.put(writePos, res);
-			newValues.add(writePos);
+		for (int i = 0; i < valor; i++){
+			mem.put(i, Complex.ZERO);
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
-	private void QP_rest(Page page, Integer size, VirdMemory memory, ConcurrentHashMap <Integer, Complex> men_out, Set <Integer> newValues, Complex partialValue, int basePos, int memPos){
-		int pos, writePos;
-		Complex res;
-		Integer VPPid;
-		Enumeration <Bloco> line;
-		Bloco b;
-		Enumeration <Integer> p;
-		Integer position;
-		Enumeration <Complex> c;
-		Complex complex;
-		
-		ConcurrentHashMap<Integer, Complex> hash;
-		hash = (ConcurrentHashMap<Integer, Complex>)memory.readMemory(0);
-
-		for (line = page.blocos.elements(); line.hasMoreElements(); ){
-			res = Complex.ZERO;
-			b = line.nextElement();
-			VPPid = b.VPPid;
-			c = b.complex.elements();
-			for (p = b.pos.elements(); p.hasMoreElements(); ){
-				position = p.nextElement();
-				complex = c.nextElement();
-				pos = basePos + position;
-				res = res.plus(partialValue.times(complex.times(hash.get(pos))));
-			}
-			writePos = memPos + (VPPid *size);
-			
-			System.out.println("Valor1 :  "+res);
-			System.out.println("Posicao:  "+writePos);
-			
-			res = res.plus(men_out.get(writePos));
-			
-			men_out.put(writePos, res);
-			newValues.add(writePos);
-		}		
-	}
-    */
-	private void eraseMemory(ConcurrentHashMap<Integer, Complex> mem, int qubits){
-		int valor = (int)Math.pow(2,qubits);
-		
-		for (int i =0; i < valor; i++)
-			mem.put(i, Complex.ZERO);
-	}
-	
-	private ConcurrentHashMap <Integer,Complex> adjustMemory(ConcurrentHashMap<Integer,Complex> mem, Set <Integer> newValues){
-		ConcurrentHashMap <Integer,Complex> temp = new ConcurrentHashMap <Integer,Complex>();
+	private ConcurrentHashMap<Integer,Complex> adjustMemory(ConcurrentHashMap<Integer,Complex> mem, Set<Integer> newValues){
+		ConcurrentHashMap<Integer,Complex> temp = new ConcurrentHashMap<Integer,Complex>();
 		Iterator<Integer> i = newValues.iterator();
 		Integer pos;
 		
-		for ( ;i.hasNext(); ){
+		for ( ; i.hasNext(); ){
 			pos = i.next();
 			temp.put(pos, mem.get(pos));
 		}	
