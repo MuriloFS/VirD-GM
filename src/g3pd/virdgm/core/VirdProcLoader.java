@@ -98,7 +98,6 @@ public class VirdProcLoader {
 	 * @param node 		Nodo sendo analizado*/
 	public Object parseFile(Object previousProc, Node node) throws IOException {
 		//VirdLogger.timeLogger("VirdProcLoader: interpretador XML iniciado",1);
-		
 		if (getNodeAttribute(node, "repr").equals("conselem")) {
 			return conselem(previousProc,node);
 		}
@@ -633,6 +632,8 @@ public class VirdProcLoader {
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
 		String       controlListAttr = getNodeAttribute(node, "controlList");
 		Integer iterator = (Integer) node.getUserData("iterator");
+		
+		
 
 		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, controlListAttr, procID, iterator);
 
@@ -698,7 +699,6 @@ public class VirdProcLoader {
 		String       outputPosAttr   = getNodeAttribute(node, "parametro");
 		String       controlListAttr = getNodeAttribute(node, "controlList");
 		
-
 		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, controlListAttr, procID, -1);
 
 		//VirdLogger.timeLogger("VirdProcLoader: processo elementar criado: " + virdProcElem,1);

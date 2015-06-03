@@ -81,9 +81,7 @@ public class VirdLauncher {
 		}
 	}
 
-	public VirdLauncher(String memInputFile, String procInputFile, String nodesToExec)
-	throws IOException, InterruptedException
-	{
+	public VirdLauncher(String memInputFile, String procInputFile, String nodesToExec)throws IOException, InterruptedException{
 		Random my_rand = new Random();
 		long tempoInicial = System.currentTimeMillis();
 		executionID = Integer.valueOf(my_rand.nextInt());
@@ -215,11 +213,14 @@ public class VirdLauncher {
 		//Runtime r = Runtime.getRuntime();
 		//Process p = r.exec("EM.jar");
 
-		if (args.length == 1) { new VirdClient(Integer.valueOf(Integer.parseInt(args[0])));
-		} else if(args.length == 2){
+		if (args.length == 1) {
+			new VirdClient(Integer.valueOf(Integer.parseInt(args[0])));
+		}
+		else if(args.length == 2){
 			//System.out.println("Launcher 2");
 			final VirdLauncher virdLauncher = new VirdLauncher(args[0],args[1]);
-		}else{
+		}
+		else{
 			System.out.println("Launcher 3");
 			try
 			{

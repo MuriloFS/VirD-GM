@@ -34,16 +34,18 @@ public class VirdProcElem {
      * @param iterator		Iterador do processo 
      * */
     VirdProcElem(String actionAttr, String valueAttr, String outputPosAttr, String inputPosAttr, String controlListAttr, int procID, Integer iterator) {
-        this.inputPosAttr  = inputPosAttr;
-        this.actionAttr    = actionAttr;
-        this.outputPosAttr = outputPosAttr;
-        this.procID        = procID;
-        this.done          = false;
-        this.somdet		   = false;
-        this.proj		   = false;
-        this.iterator =    iterator;
-        this.valueAttr = valueAttr;
-        this.quantum = false;
+    	this.inputPosAttr    = inputPosAttr;
+        this.actionAttr      = actionAttr;
+        this.outputPosAttr   = outputPosAttr;
+        this.controlListAttr = controlListAttr;
+        this.procID          = procID;
+        this.done            = false;
+        this.somdet		     = false;
+        this.proj		     = false;
+        this.iterator        = iterator;
+        this.valueAttr       = valueAttr;
+        this.quantum         = false;
+        
         if (iterator == null){
         	this.quantum = true;
         }

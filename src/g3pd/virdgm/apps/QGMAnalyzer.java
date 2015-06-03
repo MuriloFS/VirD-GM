@@ -80,6 +80,7 @@ public class QGMAnalyzer implements VirdApp{
 		System.out.println("input: " + input);
 		System.out.println("outputPosAttr: " + outputPosAttr);
 		System.out.println("iterator: " + iterator);
+		System.out.println("controlList: " + controlListAttr);
 			
 		if (iterator == -1){ //Processo Quântico
 			GPU = memory.GPU;
@@ -454,9 +455,9 @@ public class QGMAnalyzer implements VirdApp{
 					line = Integer.parseInt(pos[l].substring(op, op+1), 2);
 					column = Integer.parseInt(par[c].substring(op, op+1), 2);
 					value = GetValue(funcao[op], line, column);
-					System.out.println("antes");
+					//System.out.println("antes");
 					temp = temp.times(value);
-					System.out.println("depois	");
+					//System.out.println("depois	");
 					op+=1;
 				}
 				//System.out.println("");
@@ -1125,7 +1126,7 @@ public class QGMAnalyzer implements VirdApp{
 	}
 
 	private Complex GetValue(String nameOperator, int line, int x) {
-		System.out.println("GETVALUE:  " + nameOperator + " " + line + " " + x);
+		//System.out.println("GETVALUE:  " + nameOperator + " " + line + " " + x);
 		if (nameOperator.equals("X")){
 			if (line == 0)
 				return Complex.valueOf((double)x, 0);
@@ -1192,13 +1193,6 @@ public class QGMAnalyzer implements VirdApp{
 		}
 		else if (nameOperator.equals("Swap1")){
 				return Complex.valueOf((double) x, 0);
-		}
-		else if (nameOperator.equals("Control")){
-			if (line == 0)
-				return Complex.valueOf((double) 1-x, 0);
-			else
-				return Complex.valueOf((double) x, 0);
-			
 		}
 		return null;
 	}
