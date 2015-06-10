@@ -1,0 +1,156 @@
+#define STACK_SIZE stack_size
+#define STACK_LINES stack_lines
+#define BITS bits
+#define AMP amp
+#define LAST_EXP last_exp
+#define LAST_MATRIX_ELEMENTS last_matrix
+#define TOTAL_ELEMENTS total_elements
+#define SIZE size
+#define TAM_BLOCK 256
+#define TAM_WRAP 8                      
+#define SHIFT_READ shift_read
+#define SHIFT_WRITE shift_write
+
+#include <cuComplex.h>
+#include <iostream>
+#include <stdio.h>
+
+__device__ __constant__ cuFloatComplex matricesC[TOTAL_ELEMENTS];
+__device__ __constant__ cuFloatComplex lastMatrixC[LAST_MATRIX_ELEMENTS];
+__device__ __constant__ int lineZeroC[STACK_LINES+1];
+__device__ __constant__ int lineOneC[STACK_LINES+1];
+__device__ __constant__ int initMatrixC[STACK_SIZE+1];
+__device__ __constant__ int initLinesC[STACK_LINES+1];
+__device__ __constant__ int dimensionC[STACK_SIZE+1];
+__device__ __constant__ unsigned char expC[STACK_SIZE+1];
+
+extern "C"
+__global__ void ApplyValues(cuFloatComplex *readMemory, int *positions, cuFloatComplex *writeMemory, int *complementControl)
+{
+        cuFloatComplex newAmplitudes[AMP];
+        
+        int ind;
+        int p, pos, prev_pos;
+        unsigned int zero, one, back;
+        int l, c, d, dim, mask;
+        int lineId;        
+
+        for (l = 0; l < AMP; l++)
+            newAmplitudes[l] = make_cuFloatComplex(0,0);
+        
+        
+        cuFloatComplex temp;
+        cuFloatComplex value = make_cuFloatComplex(1,0);
+        
+
+        lineId = (TAM_BLOCK * blockIdx.x + threadIdx.x) * dimensionC[STACK_SIZE] + SHIFT_WRITE;
+
+        if(complementControl != NULL){
+            //printf("complementControl %d\n", (lineId >> 2) << 2);
+            if((((complementControl[0] >> 2) << 2) & lineId) != ((complementControl[1] >> 2) << 2)) {
+               for (l = 0; l < AMP; l++){
+                    writeMemory[lineId+l] = readMemory[lineId+l];
+                }
+                return;
+            }
+        }
+
+        //int print = 0; if (blockIdx.x == 0 && threadIdx.x == 0) print = 1;
+        
+        d = 0;
+        dim = 0;
+        prev_pos = 0;
+        pos = 0;
+        zero = one = 0;
+
+        for (ind = 0 ; ind < (STACK_SIZE); ind++){
+            mask = dimensionC[ind] -1;
+            
+            d += expC[ind];
+            l = (lineId >> (BITS - d)) & mask;            
+
+            zero = (zero << expC[ind]) | (lineZeroC[dim + l]);
+            one = (one << expC[ind]) | (lineOneC[dim + l]);
+
+            dim += dimensionC[ind];
+        }
+        zero = (zero << LAST_EXP) | lineZeroC[dim];
+        one = (one << LAST_EXP) | lineOneC[dim];
+
+        //int deslocamento = zero + one + 1;
+
+        prev_pos = -1;
+        dim = 0;
+        d= 0;
+        ind = 0;
+
+        p = positions[p];
+
+	//if (print) printf ("one: %d\nzero: %d\n", one, zero);
+        
+        while (p < SIZE){
+            temp = readMemory[p];
+            pos = p + SHIFT_READ;
+
+//	    if (print) printf("P: %d\n", pos);
+
+            if (!((zero & ~pos) | (one & pos))){
+                back = (pos & (~prev_pos)) >> LAST_EXP;
+                while (back != 0){
+		    ind--;
+                    mask = dimensionC[ind] -1;                    
+                    
+                    l = (lineId >> (BITS - d)) & mask;
+                    c = (prev_pos >> (BITS - d)) & mask;
+
+                    value = cuCdivf(value, matricesC[initMatrixC[ind] + l*dimensionC[ind] + c]);
+//		    if (print) printf ("VIB: %d %d %d\n", ind, c, (initMatrixC[ind] + l*dimensionC[ind] + c));
+//                    if (print) printf ("VIB: %f %f\n", cuCrealf(value), cuCimagf(value));
+
+//                    if (print) printf ("VB: %f %f\n", cuCrealf(matricesC[initMatrixC[ind] + l*dimensionC[ind] + c]), cuCimagf(matricesC[initMatrixC[ind] + l*dimensionC[ind] + c]));
+    
+                    d -= expC[ind];
+                    back = back >> expC[ind];
+                }
+
+                for ( ; ind < (STACK_SIZE); ind++){
+                    mask = dimensionC[ind] -1;
+                    
+                    d += expC[ind];
+                    l = (lineId >> (BITS - d)) & mask;
+                    c = (pos >> (BITS - d)) & mask;
+
+                    value = cuCmulf(value, matricesC[initMatrixC[ind] + l*dimensionC[ind] + c]);
+//                  if (print) printf ("VIA: %d %d %d\n", ind, c, (initMatrixC[ind] + l*dimensionC[ind] + c));
+//		    if (print) printf ("VIA: %f %f\n", cuCrealf(value), cuCimagf(value));
+//		    if (print) printf ("VR: %f %f\n", cuCrealf(matricesC[initMatrixC[ind] + l*dimensionC[ind] + c]), cuCimagf(matricesC[initMatrixC[ind] + l*dimensionC[ind] + c]));
+                }
+
+//		if (print) printf ("VF: %f %f\n", cuCrealf(value), cuCimagf(value));
+
+                c = pos & (AMP - 1);
+                temp = cuCmulf(value, temp);
+                for (l = 0; l < AMP; l++)
+                    newAmplitudes[l] = cuCaddf(newAmplitudes[l], cuCmulf(temp, lastMatrixC[l*AMP + c]));
+
+                prev_pos = pos;
+            }    
+
+            p = positions[p+1];
+            
+        }
+        lineId -= SHIFT_WRITE;
+
+	//if (print) printf ("N: %f %f\n", cuCrealf(newAmplitudes[0]), cuCimagf(newAmplitudes[0]));
+        
+        for (l=0; l<AMP; l++){
+            if(complementControl != NULL && (((complementControl[0] & 3) & l) != (complementControl[1] & 3)) )  {
+                writeMemory[lineId+l] = readMemory[lineId+l];
+            }
+            else{
+                writeMemory[lineId+l] = newAmplitudes[l];
+            }
+        }
+        
+}
+
