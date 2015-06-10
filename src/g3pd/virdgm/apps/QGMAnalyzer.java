@@ -74,14 +74,14 @@ public class QGMAnalyzer implements VirdApp{
 	public void app(String valueAttr, String input, String outputPosAttr, String controlListAttr, String complementListAttr, Integer iterator, VirdMemory memory, ObjectOutputStream oos) throws IOException{
 		int bound;	
 		qubits = 0;
-		System.out.println("AQUI\n");
+		//System.out.println("AQUI\n");
 		
 		System.out.println("valueAttr: " + valueAttr);
-		System.out.println("input: " + input);
-		System.out.println("outputPosAttr: " + outputPosAttr);
-		System.out.println("iterator: " + iterator);
-		System.out.println("controlList: " + controlListAttr);
-		System.out.println("complementList: " + complementListAttr);
+		//System.out.println("input: " + input);
+		//System.out.println("outputPosAttr: " + outputPosAttr);
+		//System.out.println("iterator: " + iterator);
+		//System.out.println("controlList: " + controlListAttr);
+		//System.out.println("complementList: " + complementListAttr);
 			
 		if (iterator == -1){ //Processo Quântico
 			GPU = memory.GPU;
@@ -93,9 +93,9 @@ public class QGMAnalyzer implements VirdApp{
 			String[][] par = this.parserInput(outputPosAttr);
 			int[] complement = this.parserInputComplement(complementListAttr);
 			
-			for(int i = 0; i < complement.length; i++){
-				System.out.println(complement[i]);
-			}
+			//for(int i = 0; i < complement.length; i++){
+			//	System.out.println(complement[i]);
+			//}
 			
 			System.out.println("Qubits: " + qubits);
 			Vector <Page> Pages;
@@ -121,16 +121,16 @@ public class QGMAnalyzer implements VirdApp{
 			
 			int opIndex = 0;
 			for (int pageID = 0; pageID < pos.length; pageID++){
-				for(int i = 0; i < funcao[pageID].length; i++){
-					System.out.println(funcao[pageID][i]);
-				}
+				//for(int i = 0; i < funcao[pageID].length; i++){
+				//	System.out.println(funcao[pageID][i]);
+				//}
 				Pages.add(this.PageBuilder(funcao[pageID], pos[pageID], par[pageID]));
 				opIndex += funcao[pageID].length;
 				sizesList.add((int)Math.pow(2, qubits-opIndex));
 			}
 			SetZeroOne(funcao);
 			
-			System.out.println("Num Reads: " + num_reads + "\nNum Writes: " + num_writes);
+			//System.out.println("Num Reads: " + num_reads + "\nNum Writes: " + num_writes);
 			
 			//boolean teste = true;
 			if (!GPU){
@@ -154,12 +154,12 @@ public class QGMAnalyzer implements VirdApp{
 				
 				
 				//SetZeroOne(funcao);
-				for(int i = 0; i < Pages.size(); i++){
-					Pages.get(i).print();
-				}
+				//for(int i = 0; i < Pages.size(); i++){
+				//	Pages.get(i).print();
+				//}
 				
 				CreateGpuArrays(Pages);
-				PrintGpuArrays();
+				//PrintGpuArrays();
 				
 			    Dimensions();
 			    
@@ -192,9 +192,9 @@ public class QGMAnalyzer implements VirdApp{
 		        	i--;
 		        }
     
-		        for(int i = 0; i < valid_pos.length; i++){
-		        	System.out.println("valid_pos" + i + ": " + valid_pos[i]);
-		        }
+		        //for(int i = 0; i < valid_pos.length; i++){
+		        //	System.out.println("valid_pos" + i + ": " + valid_pos[i]);
+		        //}
 
 			    cuInit(0);
 			    
@@ -221,27 +221,31 @@ public class QGMAnalyzer implements VirdApp{
 		        int aloc;
 		        CUdeviceptr deviceInputV = new CUdeviceptr();
 		        aloc = cuMemAlloc(deviceInputV, tamanho * Sizeof.FLOAT * 2 / num_reads);
-		        cuMemcpyHtoD(deviceInputV, Pointer.to(men_in), tamanho * Sizeof.FLOAT * 2 / num_reads);
-		        
-		        System.out.println("\nALOC_1: " + aloc);
+		        cuMemcpyHtoD(deviceInputV, Pointer.to(men_in), tamanho * Sizeof.FLOAT * 2 / num_reads);		        
+		        //System.out.println("ALOC_1: " + aloc);
 		        
 		        CUdeviceptr deviceInputP = new CUdeviceptr();
 		        aloc = cuMemAlloc(deviceInputP, (tamanho+1) * Sizeof.INT);
 		        cuMemcpyHtoD(deviceInputP, Pointer.to(valid_pos), (tamanho/num_reads + 1) * Sizeof.INT);
-		        System.out.println("\nALOC_2: " + aloc);
+		        //System.out.println("ALOC_2: " + aloc);
 		        
 		        CUdeviceptr deviceOutput = new CUdeviceptr();
 		        aloc = cuMemAlloc(deviceOutput, tamanho * Sizeof.FLOAT * 2 / num_writes);
+		        //System.out.println("ALOC_3: " + aloc);
 		        
-		        System.out.println("\nALOC_3: " + aloc);
+		        CUdeviceptr deviceControl = new CUdeviceptr();
+		        aloc = cuMemAlloc(deviceControl, (complement.length) * Sizeof.INT);
+		        cuMemcpyHtoD(deviceControl, Pointer.to(complement), (complement.length) * Sizeof.INT);
+		        //System.out.println("ALOC_4: " + aloc);
 		        
 		        Pointer kernelParameters = Pointer.to(
 		        		Pointer.to(deviceInputV),
 		        		Pointer.to(deviceInputP),
-		        		Pointer.to(deviceOutput)
+		        		Pointer.to(deviceOutput),
+		        		Pointer.to(deviceControl)
 				);
 		        
-		        System.out.println("\nGrid: " + dimGrid + "   BLock: "+ dimBlock);
+		        System.out.println("Grid: " + dimGrid + "   BLock: "+ dimBlock);
 		        
 		        
 		        //dimBlock= dimGrid = 1;
@@ -253,22 +257,16 @@ public class QGMAnalyzer implements VirdApp{
 		                kernelParameters, null // Kernel- and extra parameters
 		        );
 		        int teste2 = cuCtxSynchronize();
-		        System.out.println("\nVERIFICANDO KERNEL1: " + teste + " " + teste2);
+		        //System.out.println("VERIFICANDO KERNEL1: " + teste + " " + teste2);
 		        
 		    	
 		    	float hostOutput[] = new float[tamanho*2 / num_writes];
 		    	
 		    	teste = cuMemcpyDtoH(Pointer.to(hostOutput), deviceOutput, tamanho * Sizeof.FLOAT * 2 / num_writes);
 		    	
-		    	System.out.println("\nVERIFICANDO DADOS1: " + teste);
+		    	//System.out.println("VERIFICANDO DADOS1: " + teste);
 		    	
-		        for(int i = 0; i < complement.length; i++){
-		        	System.out.println("posicao: " + i);
-		        	hostOutput[2*complement[i]] = men_in[2*complement[i]];
-		        	hostOutput[2*complement[i]+1] = men_in[2*complement[i]+1];
-		        }
-		    	
-		    	System.out.println("MEMORIA FINAL");
+		    	//System.out.println("MEMORIA FINAL");
 		    	
 		    	bound = 128;
 		    	if(hostOutput.length < 128){
@@ -287,6 +285,7 @@ public class QGMAnalyzer implements VirdApp{
 		    	cuMemFree(deviceInputV);
 		    	cuMemFree(deviceInputP);
 		        cuMemFree(deviceOutput);
+		        cuMemFree(deviceControl);
 		        
 		        
 		        new File("kernel" + sf_par + "_" + sf_pos + ".cu").delete();
@@ -406,28 +405,6 @@ public class QGMAnalyzer implements VirdApp{
 		num_reads  = num_reads  * (int)Math.pow(2, funcao.length) / par.length;
 		num_writes = num_writes * (int)Math.pow(2, funcao.length) / pos.length;
 		
-		/*
-		System.out.print("PARAMETROS:\n[");
-		for (int i = 0; i < funcao.length; i ++){
-			System.out.print(funcao[i]);
-			if (i < funcao.length - 1) System.out.print(", ");
-		}
-		System.out.print("] [");
-		for (int i = 0; i < pos.length; i ++){int
-			System.out.print(pos[i]);
-			if (i < pos.length - 1) System.out.print(", ");
-		}
-		System.out.print("] [");
-		for (int i = 0; i < par.length; i ++){
-			System.out.print(par[i]);
-			if (i < par.length - 1) System.out.print(", ");
-		}
-		System.out.print("]\n");
-		
-		
-		System.out.print("###\n");
-		*/
-		
 		mod = 0;
 		int position = 0;
 		int total = 0;
@@ -446,9 +423,6 @@ public class QGMAnalyzer implements VirdApp{
 			Integer p = 0;
 			
 			for (int c = 0; c < par.length; c++){
-				
-				//String real_pos = pos[l].substring(0,len1/2) + par[c].substring(0,len2/2) + pos[l].substring(len1/2,len1) + par[c].substring(len2/2,len2);
-				//System.out.println(real_pos);
 				Complex temp = Complex.ONE;
 				lineZ = 0;
 				lineO = 0;
@@ -684,28 +658,6 @@ public class QGMAnalyzer implements VirdApp{
 		for (int i = 0; i < exps.length; i++){
 			System.out.print(((int) exps[i] & 0xFF)+", ");
 		}
-		/*
-		System.out.println("\n\nmodList: " );
-		for (int i = 0; i < modList.length; i++){
-			System.out.print(modList[i]+" ");
-		}
-		System.out.println("\n\ncolumns: ");
-		for (int i = 0; i < columns.length; i++){
-			System.out.print(columns[i]+", ");
-		}
-		System.out.println("\n\nmult: ");
-		for (int i = 0; i < mult.length; i++){
-			System.out.print(mult[i]+", ");
-		}
-		System.out.println("\n\nmultColumns: ");
-		for (int i = 0; i < multColumns.length; i++){
-			System.out.print(multColumns[i]+", ");	
-		}
-		System.out.println("\n\nelementsCount: ");
-		for (int i = 0; i < elementsNumber.length; i++){
-			System.out.print(elementsNumber[i]+", ");
-		}
-		*/
 		System.out.println("\n\niterations: "+iterations);
 		System.out.println("\nouterMatrices: "+outerMatrices);
 	}
@@ -1201,17 +1153,13 @@ public class QGMAnalyzer implements VirdApp{
 	
 	private String[][] parserInput(String entrada){
 		int begin, q;
-		System.out.println(entrada);
+		//System.out.println(entrada);
 		
 		//retira o '[' inicial e o ']' final
 		entrada = entrada.substring(1 , entrada.length() - 1);
 		//separa emdim_soma substrings
 		String [] partes = entrada.split("]");
-		
-		for(int i = 0; i < partes.length; i++){
-			System.out.println("Parte" + i + ": " + partes[i]);
-		}
-		
+	
 		String[][] saida = new String[partes.length][];
 		
 		q = 0;
@@ -1238,7 +1186,7 @@ public class QGMAnalyzer implements VirdApp{
 	
 	private int[] parserInputComplement(String entrada){
 		int begin, q;
-		System.out.println(entrada);
+		//System.out.println(entrada);
 		
 		//retira o '[' inicial e o ']' final
 		entrada = entrada.substring(1 , entrada.length() - 1);

@@ -71,7 +71,7 @@ class Connect extends Thread {
 		   VTObject myi;
     	  
 		   VirdExecImpl ve = new VirdExecImpl();
-		   System.out.println(" acao: " + myo.getObject(0) + " in: " + myo.getObject(1) + " value: " + myo.getObject(2) + " out: " + myo.getObject(3)+ "ctrlList" + myo.getObject(4) + " cmplList: " + myo.getObject(5));
+		   //System.out.println(" acao: " + myo.getObject(0) + " in: " + myo.getObject(1) + " value: " + myo.getObject(2) + " out: " + myo.getObject(3)+ "ctrlList" + myo.getObject(4) + " cmplList: " + myo.getObject(5));
 		   //adicionar (String)myo.getObject()
     	  
 		   ve.exec((String) myo.getObject(0), (String) myo.getObject(1), (String) myo.getObject(2), (String) myo.getObject(3), (String) myo.getObject(4), (String) myo.getObject(5), (Integer) myo.getObject(6), (VirdMemory) myo.getObject(7), oos);

@@ -51,7 +51,7 @@ public class VirdMemLoader {
     
     public VirdMemLoader(double num) {
     	//VirdLogger.timeLogger("Inicializando interpretador de memoria",1);
-    	System.out.println("Aqui");
+    	//System.out.println("Aqui");
     	num = Math.pow(2, num);
     	ConcurrentHashMap<Integer, Complex>temp = new ConcurrentHashMap<Integer, Complex>();
     	
