@@ -230,8 +230,9 @@ public class VirdProcLoader {
 		
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
 		String       controlListAttr = getNodeAttribute(node, "controlList");
+		String		 complementListAttr = getNodeAttribute(node, "complementList");
 		
-		VirdProcElem virdProcElem  = new VirdProcElem("", "", "", inputPosAttr, controlListAttr, procID, 0);
+		VirdProcElem virdProcElem  = new VirdProcElem("", "", "", inputPosAttr, controlListAttr, complementListAttr, procID, 0);
 		virdProcElem.setProjNode(true);
 
 		//VirdLogger.timeLogger("VirdProcLoader: operador detproj criado: " + virdProcElem,1);
@@ -303,9 +304,10 @@ public class VirdProcLoader {
 		String       outputPosAttr = getNodeAttribute(node, "pos");
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
 		String       controlListAttr = getNodeAttribute(node, "controlList");
+		String complementListAttr = getNodeAttribute(node, "complementList");
 		Integer iterator = (Integer) node.getUserData("iterator");
 
-		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, controlListAttr, procID, iterator);
+		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, controlListAttr, complementListAttr, procID, iterator);
 		virdProcElem.setSomdetNode(true);
 
 		//VirdLogger.timeLogger("VirdProcLoader: processo elementar criado: " + virdProcElem,1);
@@ -505,9 +507,10 @@ public class VirdProcLoader {
 		String       outputPosAttr = getNodeAttribute(node, "pos");
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
 		String       controlListAttr = getNodeAttribute(node, "controlList");
+		String complementListAttr = getNodeAttribute(node, "complementList");
 		Integer iterator = (Integer) node.getUserData("iterator");
 		
-		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, "", outputPosAttr, inputPosAttr, controlListAttr, procID, iterator);
+		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, "", outputPosAttr, inputPosAttr, controlListAttr, complementListAttr, procID, iterator);
 
 		//VirdLogger.timeLogger("VirdProcLoader: projeção criada: " + virdProcElem,1);
 
@@ -569,8 +572,9 @@ public class VirdProcLoader {
 		String       outputPosAttr = getNodeAttribute(node, "pos");
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
 		String       controlListAttr = getNodeAttribute(node, "controlList");
+		String complementListAttr = getNodeAttribute(node, "complementList");
 		//Integer iterator = (Integer) node.getUserData("iterator");
-		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, "", outputPosAttr, inputPosAttr, controlListAttr, procID, 0);
+		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, "", outputPosAttr, inputPosAttr, controlListAttr, complementListAttr, procID, 0);
 
 		//VirdLogger.timeLogger("VirdProcLoader: probabilidade criado: " + virdProcElem,1);
 
@@ -631,11 +635,12 @@ public class VirdProcLoader {
 		String       outputPosAttr = getNodeAttribute(node, "pos");
 		String       inputPosAttr  = getNodeAttribute(node, "parametro");
 		String       controlListAttr = getNodeAttribute(node, "controlList");
+		String complementListAttr = getNodeAttribute(node, "complementList");
 		Integer iterator = (Integer) node.getUserData("iterator");
 		
 		
 
-		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, controlListAttr, procID, iterator);
+		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, controlListAttr, complementListAttr, procID, iterator);
 
 		//VirdLogger.timeLogger("VirdProcLoader: processo elementar criado: " + virdProcElem,1);
 
@@ -698,8 +703,9 @@ public class VirdProcLoader {
 		String       inputPosAttr    = getNodeAttribute(node, "pos");
 		String       outputPosAttr   = getNodeAttribute(node, "parametro");
 		String       controlListAttr = getNodeAttribute(node, "controlList");
+		String 		 complementListAttr = getNodeAttribute(node, "complementList");
 		
-		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, controlListAttr, procID, -1);
+		VirdProcElem virdProcElem  = new VirdProcElem(actionAttr, valueAttr, outputPosAttr, inputPosAttr, controlListAttr, complementListAttr, procID, -1);
 
 		//VirdLogger.timeLogger("VirdProcLoader: processo elementar criado: " + virdProcElem,1);
 

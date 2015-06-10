@@ -295,6 +295,7 @@ public class VirdLauncher {
 					final String inputPosAttr = virdProcElem.getInputPosAttr();
 					final String valueAttr = virdProcElem.getValueAttr();
 					final String controlListAttr = virdProcElem.getControlListAttr();
+					final String complementListAttr = virdProcElem.getComplementListAttr();
 					final Integer iterator = virdProcElem.getIterator();
 
 					Thread schdl = new Thread()
@@ -305,7 +306,7 @@ public class VirdLauncher {
 							if (virdProcElem.isProjNode())
 								selectProj(virdProcElem, procDone);
 							else {
-								virdExec.send(actionAttr, valueAttr, inputPosAttr, outputPosAttr, controlListAttr, iterator, virdMemory, host, port);
+								virdExec.send(actionAttr, valueAttr, inputPosAttr, outputPosAttr, controlListAttr, complementListAttr, iterator, virdMemory, host, port);
 							}
 							long tempoFinalProc = System.currentTimeMillis();
 							synchronized (lock){

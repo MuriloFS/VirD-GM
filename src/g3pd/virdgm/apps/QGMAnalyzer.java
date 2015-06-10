@@ -71,7 +71,7 @@ public class QGMAnalyzer implements VirdApp{
 	
 	
 	@SuppressWarnings("unchecked")
-	public void app(String valueAttr, String input, String outputPosAttr, String controlListAttr, Integer iterator, VirdMemory memory, ObjectOutputStream oos) throws IOException{
+	public void app(String valueAttr, String input, String outputPosAttr, String controlListAttr, String complementListAttr, Integer iterator, VirdMemory memory, ObjectOutputStream oos) throws IOException{
 		int bound;	
 		qubits = 0;
 		System.out.println("AQUI\n");
@@ -81,6 +81,7 @@ public class QGMAnalyzer implements VirdApp{
 		System.out.println("outputPosAttr: " + outputPosAttr);
 		System.out.println("iterator: " + iterator);
 		System.out.println("controlList: " + controlListAttr);
+		System.out.println("complementList: " + complementListAttr);
 			
 		if (iterator == -1){ //Processo Quântico
 			GPU = memory.GPU;
@@ -90,6 +91,11 @@ public class QGMAnalyzer implements VirdApp{
 			String[][] funcao = this.parserInput(valueAttr);
 			String[][] pos = this.parserInput(input);
 			String[][] par = this.parserInput(outputPosAttr);
+			int[] complement = this.parserInputComplement(complementListAttr);
+			
+			for(int i = 0; i < complement.length; i++){
+				System.out.println(complement[i]);
+			}
 			
 			System.out.println("Qubits: " + qubits);
 			Vector <Page> Pages;
@@ -185,20 +191,11 @@ public class QGMAnalyzer implements VirdApp{
 		        	valid_pos[i/2] = b;
 		        	i--;
 		        }
-		        /*
-		      //System.out.println("VP: " + vp);
-		        for (int i = 0; i < 12; i++){
-		        	System.out.println("POS: " + i + " Valor: " + men_in[i*2] + " " + men_in[i*2 + 1]);
-		        	System.out.println("Valida: " + valid_pos[i]);
+    
+		        for(int i = 0; i < valid_pos.length; i++){
+		        	System.out.println("valid_pos" + i + ": " + valid_pos[i]);
 		        }
-		        System.out.println("VP FIM");
-		        for (int i = valid_pos.length - 13; i < valid_pos.length - 1; i++){
-		        	System.out.println("POS: " + i + " Valor: " + men_in[i*2] + " " + men_in[i*2 + 1]);
-		        	System.out.println("Valida: " + valid_pos[i]);
-		        }
-		        System.out.println("VP saiu");
-		        System.out.println("POS: " + valid_pos.length + "\nValida: " + valid_pos[valid_pos.length-1]);
-			    */
+
 			    cuInit(0);
 			    
 			    String ptxFileName = CreatePtxFile();
@@ -265,6 +262,11 @@ public class QGMAnalyzer implements VirdApp{
 		    	
 		    	System.out.println("\nVERIFICANDO DADOS1: " + teste);
 		    	
+		        for(int i = 0; i < complement.length; i++){
+		        	System.out.println("posicao: " + i);
+		        	hostOutput[2*complement[i]] = men_in[2*complement[i]];
+		        	hostOutput[2*complement[i]+1] = men_in[2*complement[i]+1];
+		        }
 		    	
 		    	System.out.println("MEMORIA FINAL");
 		    	
@@ -1231,6 +1233,28 @@ public class QGMAnalyzer implements VirdApp{
 		
 		if (qubits == 0) qubits = q;
 		
+		return saida;
+	}
+	
+	private int[] parserInputComplement(String entrada){
+		int begin, q;
+		System.out.println(entrada);
+		
+		//retira o '[' inicial e o ']' final
+		entrada = entrada.substring(1 , entrada.length() - 1);
+		//separa emdim_soma substrings
+		if(entrada.equalsIgnoreCase("")){
+			return new int[0];
+		}
+		String partes[] = entrada.split(",");
+		
+		int[] saida = new int[partes.length];
+		
+		//separa a entrada em vetores de listas de strings
+		for(int i = 0; i < partes.length; i++){
+			saida[i] = Integer.valueOf(partes[i]);
+		}
+				
 		return saida;
 	}
 	

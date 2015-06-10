@@ -15,6 +15,7 @@ public class VirdProcElem {
     String  inputPosAttr;
     String  outputPosAttr;
     String  controlListAttr;
+    String complementListAttr;
     Integer iterator;
     String valueAttr;
     Boolean quantum;
@@ -33,11 +34,12 @@ public class VirdProcElem {
      * @param procID		ID do processo
      * @param iterator		Iterador do processo 
      * */
-    VirdProcElem(String actionAttr, String valueAttr, String outputPosAttr, String inputPosAttr, String controlListAttr, int procID, Integer iterator) {
+    VirdProcElem(String actionAttr, String valueAttr, String outputPosAttr, String inputPosAttr, String controlListAttr, String complementListAttr, int procID, Integer iterator) {
     	this.inputPosAttr    = inputPosAttr;
         this.actionAttr      = actionAttr;
         this.outputPosAttr   = outputPosAttr;
         this.controlListAttr = controlListAttr;
+        this.complementListAttr = complementListAttr;
         this.procID          = procID;
         this.done            = false;
         this.somdet		     = false;
@@ -104,6 +106,15 @@ public class VirdProcElem {
     public void setControListAttr(String controlListAttr) {
         this.controlListAttr = controlListAttr;
     }
+    
+	public String getComplementListAttr() {
+		return complementListAttr;
+	}
+	
+    public void setComplementListAttr(String complementlListAttr) {
+        this.complementListAttr = complementListAttr;
+    }
+	
     /**Retorna o ID do processo*/
     public int getProcID() {
         return procID;
@@ -178,4 +189,6 @@ public class VirdProcElem {
     public Vector<Node> getNodeList(){
     	return this.nodeList;
     }
+
+
 }
